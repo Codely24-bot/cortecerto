@@ -9,14 +9,27 @@ const links = [
   { to: "/assinaturas", label: "Assinaturas", hint: "Mensalistas e recorrencia" }
 ];
 
-export default function Sidebar({ mobile = false, onNavigate }) {
+export default function Sidebar({ mobile = false, onNavigate, onClose }) {
   return (
     <aside
-      className={`app-panel rounded-[2rem] p-5 md:p-6 flex h-full flex-col gap-8 ${
-        mobile ? "min-h-full" : ""
+      id={mobile ? "mobile-navigation" : undefined}
+      className={`app-panel flex h-full flex-col gap-8 rounded-[2rem] p-5 md:p-6 ${
+        mobile ? "min-h-full overflow-y-auto" : ""
       }`}
     >
-      <BrandLockup />
+      <div className="flex items-start justify-between gap-4">
+        <BrandLockup className="min-w-0 flex-1" />
+        {mobile ? (
+          <button
+            aria-label="Fechar menu"
+            className="btn-ghost mt-1 h-11 w-11 shrink-0 px-0 text-xl leading-none"
+            onClick={() => onClose?.()}
+            type="button"
+          >
+            &times;
+          </button>
+        ) : null}
+      </div>
 
       <div className="gold-divider" />
 

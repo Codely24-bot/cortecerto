@@ -240,6 +240,82 @@ body::after {
   box-shadow: none;
 }
 
+.hamburger-button {
+  width: 3.4rem;
+  height: 3.4rem;
+  border: 1px solid rgba(242, 200, 107, 0.18);
+  border-radius: 1.1rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015)),
+    rgba(255, 255, 255, 0.03);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.28rem;
+  flex-shrink: 0;
+  box-shadow:
+    0 18px 34px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition:
+    border-color 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.hamburger-button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(242, 200, 107, 0.34);
+}
+
+.hamburger-icon {
+  width: 1.35rem;
+  height: 1.35rem;
+  stroke: #f2c86b;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mobile-drawer-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+}
+
+.mobile-drawer-shell.is-open {
+  pointer-events: auto;
+}
+
+.mobile-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity 220ms ease;
+}
+
+.mobile-drawer-panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(88vw, 340px);
+  padding: 1rem;
+  transform: translateX(calc(-100% - 1.5rem));
+  transition: transform 240ms ease;
+}
+
+.mobile-drawer-shell.is-open .mobile-drawer-backdrop {
+  opacity: 1;
+}
+
+.mobile-drawer-shell.is-open .mobile-drawer-panel {
+  transform: translateX(0);
+}
+
 .metric-card {
   position: relative;
   overflow: hidden;

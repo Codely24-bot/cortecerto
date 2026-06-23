@@ -2,8 +2,9 @@
   "name": "mestre-da-navalha-webapp",
   "private": true,
   "version": "1.0.0",
+  "type": "module",
   "engines": {
-    "node": "20.x"
+    "node": "20.x || 24.x"
   },
   "workspaces": [
     "backend",

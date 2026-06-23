@@ -19,6 +19,29 @@ function ProtectedLayout({ children }) {
     setSidebarOpen(false);
   }, [location.pathname]);
 
+  useEffect(() => {
+    if (!sidebarOpen) {
+      document.body.style.overflow = "";
+      return undefined;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setSidebarOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [sidebarOpen]);
+
   if (!token) {
     return <Navigate to="/" replace state={{ from: location }} />;
   }
@@ -34,31 +57,47 @@ function ProtectedLayout({ children }) {
           <div className="flex min-w-0 flex-col gap-6">
             <div className="lg:hidden">
               <div className="app-panel rounded-[1.8rem] px-4 py-4">
-                <div className="flex items-center justify-between gap-4">
-                  <BrandLockup compact showTagline={false} />
+                <div className="flex items-center gap-4">
                   <button
                     aria-label="Abrir menu"
                     aria-expanded={sidebarOpen}
-                    className="btn-ghost px-4 py-3"
+                    aria-controls="mobile-navigation"
+                    className="hamburger-button"
                     onClick={() => setSidebarOpen(true)}
                     type="button"
                   >
-                    Menu
+                    <span className="sr-only">Abrir menu</span>
+                    <svg
+                      aria-hidden="true"
+                      className="hamburger-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M4 7H20" />
+                      <path d="M4 12H20" />
+                      <path d="M4 17H20" />
+                    </svg>
                   </button>
+                  <BrandLockup compact showTagline={false} className="min-w-0 flex-1" />
                 </div>
               </div>
             </div>
 
             {sidebarOpen ? (
-              <div className="fixed inset-0 z-40 lg:hidden">
+              <div className="mobile-drawer-shell is-open lg:hidden">
                 <button
                   aria-label="Fechar menu"
-                  className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                  className="mobile-drawer-backdrop"
                   onClick={() => setSidebarOpen(false)}
                   type="button"
                 />
-                <div className="absolute inset-y-0 left-0 w-[min(88vw,330px)] p-4">
-                  <Sidebar mobile onNavigate={() => setSidebarOpen(false)} />
+                <div className="mobile-drawer-panel">
+                  <Sidebar
+                    mobile
+                    onClose={() => setSidebarOpen(false)}
+                    onNavigate={() => setSidebarOpen(false)}
+                  />
                 </div>
               </div>
             ) : null}

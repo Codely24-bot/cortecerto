@@ -5,7 +5,7 @@
   "main": "robo.js",
   "type": "commonjs",
   "engines": {
-    "node": "20.x"
+    "node": "20.x || 24.x"
   },
   "scripts": {
     "start": "node robo.js",
