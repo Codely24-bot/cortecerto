@@ -4,13 +4,20 @@ dotenv.config();
 
 export const DEFAULT_BARBERSHOP_ID = process.env.BARBEARIA_ID || "default";
 export const DEFAULT_BARBERSHOP_NAME =
-  process.env.BARBEARIA_NOME || "Barbearia Principal";
+  process.env.BARBEARIA_NOME || "MESTRE DA NAVALHA";
 export const BARBERSHOP_TIMEZONE =
   process.env.BARBEARIA_TIMEZONE || "America/Sao_Paulo";
 
 const DEFAULT_ADMIN_USERNAME = "admin";
 const DEFAULT_ADMIN_PASSWORD = "admin123";
 const DATABASE_PLACEHOLDERS = ["PROJECT_REF", "REGION", "SENHA_REAL", "SUA_SENHA"];
+const RAILWAY_ENV_KEYS = [
+  "RAILWAY_ENVIRONMENT",
+  "RAILWAY_PROJECT_ID",
+  "RAILWAY_SERVICE_ID",
+  "RAILWAY_PUBLIC_DOMAIN",
+  "RAILWAY_STATIC_URL"
+];
 
 export function getAdminCredentials() {
   return {
@@ -29,6 +36,10 @@ export function getDatabaseUrl() {
 
 export function getChatbotEnabled() {
   return process.env.CHATBOT_ENABLED === "true";
+}
+
+export function isRailwayRuntime() {
+  return RAILWAY_ENV_KEYS.some((key) => Boolean(process.env[key]));
 }
 
 export function getRuntimeSummary() {
@@ -56,6 +67,7 @@ export function validateRuntimeConfig() {
   const databaseUrl = getDatabaseUrl();
   const apiUrl = getPublicApiUrl();
   const admin = getAdminCredentials();
+  const railwayRuntime = isRailwayRuntime();
 
   if (!databaseUrl) {
     errors.push("DATABASE_URL nao configurada.");
@@ -72,9 +84,15 @@ export function validateRuntimeConfig() {
       const parsed = new URL(databaseUrl);
 
       if (parsed.hostname.startsWith("db.") && parsed.hostname.endsWith(".supabase.co")) {
-        errors.push(
-          "DATABASE_URL esta usando o host direto db.<projeto>.supabase.co. No Railway use a URI de Connection Pooling (...pooler.supabase.com)."
-        );
+        if (railwayRuntime) {
+          errors.push(
+            "DATABASE_URL esta usando o host direto db.<projeto>.supabase.co. No Railway use a URI de Connection Pooling (...pooler.supabase.com)."
+          );
+        } else {
+          warnings.push(
+            "DATABASE_URL esta usando o host direto db.<projeto>.supabase.co. Isso pode funcionar localmente, mas no Railway troque para a URI de Connection Pooling (...pooler.supabase.com)."
+          );
+        }
       }
 
       if (!parsed.username || !parsed.password) {

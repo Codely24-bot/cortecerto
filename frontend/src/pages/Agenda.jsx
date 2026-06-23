@@ -30,9 +30,9 @@ function getInitialForm(date, serviceName = "Corte") {
 }
 
 function statusBadgeClass(status) {
-  if (status === "cancelado") return "bg-rose-100 text-rose-700";
-  if (status === "concluido") return "bg-emerald-100 text-emerald-700";
-  return "bg-mint/40 text-ink";
+  if (status === "cancelado") return "status-pill status-pill--cancelado";
+  if (status === "concluido") return "status-pill status-pill--concluido";
+  return "status-pill status-pill--confirmado";
 }
 
 function AppointmentModal({
@@ -56,20 +56,20 @@ function AppointmentModal({
       : "Novo agendamento";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-3xl rounded-[28px] border border-white/40 bg-[#fffdf8] p-6 shadow-[0_24px_80px_rgba(17,24,39,0.18)] md:p-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/78 p-4 backdrop-blur-md">
+      <div className="app-panel w-full max-w-3xl rounded-[2rem] p-6 md:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-ink/45">Agenda</p>
-            <h2 className="mt-2 text-3xl font-semibold text-ink">{title}</h2>
-            <p className="mt-2 text-sm text-ink/60">
+            <p className="section-kicker">Agenda</p>
+            <h2 className="mt-3 font-display text-3xl font-semibold text-white">{title}</h2>
+            <p className="mt-3 text-sm text-soft">
               {isView
                 ? "Consulte os dados do cliente sem sair da agenda."
                 : "Preencha os dados abaixo para salvar o agendamento."}
             </p>
           </div>
           <button
-            className="rounded-full border border-ink/10 px-4 py-2 text-sm text-ink/70 transition hover:bg-ink hover:text-cream"
+            className="btn-ghost px-4 py-2"
             onClick={onClose}
             type="button"
           >
@@ -79,31 +79,27 @@ function AppointmentModal({
 
         {isView ? (
           <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="rounded-3xl border border-ink/5 bg-white/75 p-5">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink/45">Cliente</p>
-              <h3 className="mt-3 text-2xl font-semibold text-ink">{agendamento.nome}</h3>
-              <p className="mt-2 text-sm text-ink/60">{agendamento.telefone}</p>
+            <div className="app-panel-muted rounded-[1.5rem] p-5">
+              <p className="section-kicker">Cliente</p>
+              <h3 className="mt-3 font-display text-2xl font-semibold text-white">{agendamento.nome}</h3>
+              <p className="mt-2 text-sm text-soft">{agendamento.telefone}</p>
             </div>
-            <div className="rounded-3xl border border-ink/5 bg-white/75 p-5">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink/45">Servico</p>
-              <h3 className="mt-3 text-2xl font-semibold text-ink">{agendamento.servico}</h3>
-              <p className="mt-2 text-sm text-ink/60">
+            <div className="app-panel-muted rounded-[1.5rem] p-5">
+              <p className="section-kicker">Servico</p>
+              <h3 className="mt-3 font-display text-2xl font-semibold text-white">{agendamento.servico}</h3>
+              <p className="mt-2 text-sm text-soft">
                 {formatDateLabel(agendamento.data)} as {agendamento.hora}
               </p>
             </div>
-            <div className="rounded-3xl border border-ink/5 bg-white/75 p-5">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink/45">Status</p>
-              <span
-                className={`mt-3 inline-flex rounded-full px-4 py-2 text-sm font-medium ${statusBadgeClass(
-                  agendamento.status
-                )}`}
-              >
+            <div className="app-panel-muted rounded-[1.5rem] p-5">
+              <p className="section-kicker">Status</p>
+              <span className={`mt-3 inline-flex ${statusBadgeClass(agendamento.status)}`}>
                 {agendamento.status}
               </span>
             </div>
-            <div className="rounded-3xl border border-ink/5 bg-white/75 p-5">
-              <p className="text-xs uppercase tracking-[0.3em] text-ink/45">Resumo</p>
-              <p className="mt-3 text-sm leading-7 text-ink/70">
+            <div className="app-panel-muted rounded-[1.5rem] p-5">
+              <p className="section-kicker">Resumo</p>
+              <p className="mt-3 text-sm leading-7 text-soft">
                 Cliente agendado para {formatDateLabel(agendamento.data)} as {agendamento.hora},
                 com servico de {agendamento.servico}.
               </p>
@@ -112,9 +108,9 @@ function AppointmentModal({
         ) : (
           <form className="mt-8 grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-ink/70">Nome do cliente</span>
+              <span className="text-sm font-medium text-soft">Nome do cliente</span>
               <input
-                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 outline-none transition focus:border-ink/30"
+                className="field-dark"
                 name="nome"
                 onChange={onChange}
                 required
@@ -123,9 +119,9 @@ function AppointmentModal({
               />
             </label>
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-ink/70">Telefone com DDD</span>
+              <span className="text-sm font-medium text-soft">Telefone com DDD</span>
               <input
-                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 outline-none transition focus:border-ink/30"
+                className="field-dark"
                 name="telefone"
                 onChange={onChange}
                 required
@@ -134,9 +130,9 @@ function AppointmentModal({
               />
             </label>
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-ink/70">Data</span>
+              <span className="text-sm font-medium text-soft">Data</span>
               <input
-                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 outline-none transition focus:border-ink/30"
+                className="field-dark"
                 name="data"
                 onChange={onChange}
                 required
@@ -145,9 +141,9 @@ function AppointmentModal({
               />
             </label>
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-ink/70">Hora</span>
+              <span className="text-sm font-medium text-soft">Hora</span>
               <input
-                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 outline-none transition focus:border-ink/30"
+                className="field-dark"
                 name="hora"
                 onChange={onChange}
                 required
@@ -156,9 +152,9 @@ function AppointmentModal({
               />
             </label>
             <label className="flex flex-col gap-2 md:col-span-2">
-              <span className="text-sm font-medium text-ink/70">Servico</span>
+              <span className="text-sm font-medium text-soft">Servico</span>
               <select
-                className="rounded-2xl border border-ink/10 bg-white px-4 py-3 outline-none transition focus:border-ink/30"
+                className="field-dark"
                 name="servico"
                 onChange={onChange}
                 value={form.servico}
@@ -172,14 +168,14 @@ function AppointmentModal({
             </label>
             <div className="mt-2 flex flex-wrap gap-3 md:col-span-2">
               <button
-                className="rounded-2xl bg-ink px-5 py-3 text-sm font-medium text-cream transition hover:opacity-90"
+                className="btn-gold"
                 disabled={saving}
                 type="submit"
               >
                 {saving ? "Salvando..." : isEdit ? "Salvar alteracoes" : "Criar agendamento"}
               </button>
               <button
-                className="rounded-2xl border border-ink/10 bg-white px-5 py-3 text-sm text-ink/70 transition hover:bg-ink hover:text-cream"
+                className="btn-ghost"
                 onClick={onClose}
                 type="button"
               >
@@ -355,10 +351,14 @@ export default function Agenda() {
   }
 
   return (
-    <section className="flex flex-col gap-10">
-      <Topbar title="Agenda diaria" subtitle="Agenda" />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+    <section className="flex flex-col gap-6">
+      <Topbar
+        title="Agenda diaria"
+        subtitle="Agendamentos"
+        description="Controle atendimentos, abra o QR do WhatsApp e administre os clientes com a mesma linguagem visual da nova marca."
+      />
+      {error ? <p className="alert-error">{error}</p> : null}
+      {success ? <p className="alert-success">{success}</p> : null}
 
       <AppointmentModal
         agendamento={modalAppointment}
@@ -371,14 +371,14 @@ export default function Agenda() {
         type={modalType}
       />
 
-      <div className="glass rounded-3xl p-8 shadow-soft">
+      <div className="app-panel rounded-[2rem] p-6 md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex flex-col gap-3">
-            <p className="text-sm text-ink/60">
+            <p className="text-sm text-soft">
               Visualizacao em tempo real da agenda.
             </p>
             <input
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark max-w-[220px]"
               type="date"
               value={selectedDate}
               onChange={(event) => setSelectedDate(event.target.value)}
@@ -386,14 +386,14 @@ export default function Agenda() {
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <button
-              className="bg-white/80 border border-ink/10 rounded-2xl px-5 py-3 text-sm"
+              className="btn-ghost"
               onClick={() => window.open(CHATBOT_QR_URL, "_blank", "noopener,noreferrer")}
               type="button"
             >
               Gerar QR do WhatsApp
             </button>
             <a
-              className="text-xs text-ink/60 underline-offset-4 hover:underline"
+              className="text-xs text-faint underline-offset-4 hover:text-white hover:underline"
               href={CHATBOT_QR_URL}
               target="_blank"
               rel="noreferrer"
@@ -401,7 +401,7 @@ export default function Agenda() {
               Abrir QR em nova aba
             </a>
             <button
-              className="bg-ink text-cream rounded-2xl px-5 py-3 text-sm"
+              className="btn-gold"
               onClick={openNewAppointmentModal}
               type="button"
             >
@@ -409,47 +409,42 @@ export default function Agenda() {
             </button>
           </div>
         </div>
-        <div className="mt-5 rounded-2xl bg-white/55 border border-ink/5 px-4 py-3">
-          <p className="text-sm text-ink/70">
+        <div className="app-panel-muted mt-5 rounded-[1.4rem] px-4 py-3">
+          <p className="text-sm text-soft">
             Servicos disponiveis para faturamento:{" "}
             {servicos.length ? servicos.map((item) => item.nome).join(", ") : "carregando..."}
           </p>
         </div>
         <div className="mt-6 overflow-x-auto">
-          {loading ? <p className="text-sm text-ink/60">Carregando agenda...</p> : null}
+          {loading ? <p className="text-sm text-soft">Carregando agenda...</p> : null}
           {!loading && !agendamentos.length ? (
-            <p className="text-sm text-ink/60">Nenhum agendamento para esta data.</p>
+            <p className="text-sm text-soft">Nenhum agendamento para esta data.</p>
           ) : null}
           {!loading && agendamentos.length ? (
-            <table className="w-full text-sm">
+            <table className="data-table text-sm">
               <thead>
-                <tr className="text-left text-ink/60">
-                  <th className="py-3">Hora</th>
-                  <th className="py-3">Cliente</th>
-                  <th className="py-3">Servico</th>
-                  <th className="py-3">Status</th>
-                  <th className="py-3">Acoes</th>
+                <tr>
+                  <th>Hora</th>
+                  <th>Cliente</th>
+                  <th>Servico</th>
+                  <th>Status</th>
+                  <th>Acoes</th>
                 </tr>
               </thead>
               <tbody>
                 {agendamentos.map((row) => (
-                  <tr key={row.id} className="border-t border-ink/5">
-                    <td className="py-4">{row.hora}</td>
-                    <td className="py-4">{row.nome}</td>
-                    <td className="py-4">{row.servico}</td>
-                    <td className="py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs ${statusBadgeClass(
-                          row.status
-                        )}`}
-                      >
-                        {row.status}
-                      </span>
+                  <tr key={row.id}>
+                    <td>{row.hora}</td>
+                    <td>{row.nome}</td>
+                    <td>{row.servico}</td>
+                    <td>
+                      <span className={statusBadgeClass(row.status)}>{row.status}</span>
                     </td>
-                    <td className="py-4 flex gap-2">
+                    <td>
+                      <div className="flex flex-wrap gap-2">
                       {row.status !== "concluido" && row.status !== "cancelado" ? (
                         <button
-                          className="px-3 py-2 rounded-xl bg-emerald-600 text-white"
+                          className="btn-success px-3 py-2"
                           onClick={() => handleComplete(row)}
                           type="button"
                         >
@@ -457,26 +452,27 @@ export default function Agenda() {
                         </button>
                       ) : null}
                       <button
-                        className="px-3 py-2 rounded-xl bg-white/70 border border-ink/10"
+                        className="btn-ghost px-3 py-2"
                         onClick={() => openEditModal(row)}
                         type="button"
                       >
                         Editar
                       </button>
                       <button
-                        className="px-3 py-2 rounded-xl bg-white/70 border border-ink/10"
+                        className="btn-danger px-3 py-2"
                         onClick={() => handleCancel(row)}
                         type="button"
                       >
                         Cancelar
                       </button>
                       <button
-                        className="px-3 py-2 rounded-xl bg-ink text-cream"
+                        className="btn-dark px-3 py-2"
                         onClick={() => openViewModal(row)}
                         type="button"
                       >
                         Ver cliente
                       </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

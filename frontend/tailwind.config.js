@@ -3,8 +3,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["\"Space Grotesk\"", "sans-serif"],
-        body: ["\"IBM Plex Sans\"", "sans-serif"]
+        display: ["\"Sora\"", "sans-serif"],
+        body: ["\"Manrope\"", "sans-serif"]
       },
       colors: {
         ink: "#0E0F12",

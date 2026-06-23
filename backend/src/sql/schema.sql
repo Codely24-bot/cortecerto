@@ -3,10 +3,6 @@ CREATE TABLE IF NOT EXISTS barbearias (
   nome TEXT NOT NULL
 );
 
-INSERT INTO barbearias (id, nome)
-VALUES ('default', 'Barbearia Principal')
-ON CONFLICT (id) DO NOTHING;
-
 CREATE TABLE IF NOT EXISTS servicos (
   id SERIAL PRIMARY KEY,
   barbearia_id TEXT NOT NULL REFERENCES barbearias(id),
@@ -116,11 +112,111 @@ CREATE TABLE IF NOT EXISTS lembretes (
 
 CREATE INDEX IF NOT EXISTS idx_horarios_data ON horarios(data);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_data ON agendamentos(data);
+CREATE INDEX IF NOT EXISTS idx_servicos_barbearia_id ON servicos(barbearia_id);
+CREATE INDEX IF NOT EXISTS idx_horarios_barbearia_id ON horarios(barbearia_id);
+CREATE INDEX IF NOT EXISTS idx_agendamentos_barbearia_id ON agendamentos(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_planos_assinatura_barbearia ON planos_assinatura(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_clientes_assinatura_barbearia ON clientes_assinatura(barbearia_id);
+CREATE INDEX IF NOT EXISTS idx_clientes_assinatura_plano_id ON clientes_assinatura(plano_id);
 CREATE INDEX IF NOT EXISTS idx_clientes_assinatura_vencimento ON clientes_assinatura(data_vencimento);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_assinatura_cliente ON pagamentos_assinatura(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_pagamentos_assinatura_barbearia_id ON pagamentos_assinatura(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_atendimento_agendamento ON pagamentos_atendimento(agendamento_id);
+CREATE INDEX IF NOT EXISTS idx_pagamentos_atendimento_barbearia_id ON pagamentos_atendimento(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_pagamentos_atendimento_data ON pagamentos_atendimento(data_pagamento, criado_em);
 CREATE INDEX IF NOT EXISTS idx_consumos_assinatura_cliente ON consumos_assinatura(cliente_id);
+CREATE INDEX IF NOT EXISTS idx_consumos_assinatura_agendamento_id ON consumos_assinatura(agendamento_id);
+CREATE INDEX IF NOT EXISTS idx_consumos_assinatura_barbearia_id ON consumos_assinatura(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_lembretes_pendentes ON lembretes(status, agendado_para);
+CREATE INDEX IF NOT EXISTS idx_lembretes_barbearia_id ON lembretes(barbearia_id);
+
+ALTER TABLE barbearias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE servicos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE horarios ENABLE ROW LEVEL SECURITY;
+ALTER TABLE agendamentos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE planos_assinatura ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clientes_assinatura ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pagamentos_assinatura ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pagamentos_atendimento ENABLE ROW LEVEL SECURITY;
+ALTER TABLE consumos_assinatura ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lembretes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS deny_client_access_on_barbearias ON barbearias;
+CREATE POLICY deny_client_access_on_barbearias
+  ON barbearias
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_servicos ON servicos;
+CREATE POLICY deny_client_access_on_servicos
+  ON servicos
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_horarios ON horarios;
+CREATE POLICY deny_client_access_on_horarios
+  ON horarios
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_agendamentos ON agendamentos;
+CREATE POLICY deny_client_access_on_agendamentos
+  ON agendamentos
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_planos_assinatura ON planos_assinatura;
+CREATE POLICY deny_client_access_on_planos_assinatura
+  ON planos_assinatura
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_clientes_assinatura ON clientes_assinatura;
+CREATE POLICY deny_client_access_on_clientes_assinatura
+  ON clientes_assinatura
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_pagamentos_assinatura ON pagamentos_assinatura;
+CREATE POLICY deny_client_access_on_pagamentos_assinatura
+  ON pagamentos_assinatura
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_pagamentos_atendimento ON pagamentos_atendimento;
+CREATE POLICY deny_client_access_on_pagamentos_atendimento
+  ON pagamentos_atendimento
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_consumos_assinatura ON consumos_assinatura;
+CREATE POLICY deny_client_access_on_consumos_assinatura
+  ON consumos_assinatura
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_lembretes ON lembretes;
+CREATE POLICY deny_client_access_on_lembretes
+  ON lembretes
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);

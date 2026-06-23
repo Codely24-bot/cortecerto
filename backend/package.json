@@ -1,7 +1,7 @@
 {
-  "name": "barbearia-backend",
+  "name": "mestre-da-navalha-backend",
   "version": "1.0.0",
-  "description": "API de agendamentos para barbearia com integracao chatbot",
+  "description": "Backend do MESTRE DA NAVALHA, web app para barbearias",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

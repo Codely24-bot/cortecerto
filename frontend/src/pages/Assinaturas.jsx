@@ -23,6 +23,13 @@ function formatDate(value) {
   return `${day}/${month}/${year}`;
 }
 
+function paymentStatusClass(status) {
+  if (status === "pago") return "status-pill status-pill--pago";
+  if (status === "atrasado") return "status-pill status-pill--atrasado";
+  if (status === "cancelado") return "status-pill status-pill--cancelado";
+  return "status-pill status-pill--pendente";
+}
+
 export default function Assinaturas() {
   const [summary, setSummary] = useState(null);
   const [plan, setPlan] = useState(null);
@@ -154,31 +161,38 @@ export default function Assinaturas() {
   ];
 
   return (
-    <section className="flex flex-col gap-10">
-      <Topbar title="Assinaturas e cortes mensais" subtitle="Assinaturas" />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+    <section className="flex flex-col gap-6">
+      <Topbar
+        title="Assinaturas e cortes mensais"
+        subtitle="Recorrencia"
+        description="Gerencie mensalistas, pagamentos e consumo de cortes em uma area refinada para acompanhar previsibilidade de caixa."
+      />
+
+      {error ? <p className="alert-error">{error}</p> : null}
+      {success ? <p className="alert-success">{success}</p> : null}
+
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => (
-          <div key={card.label} className="glass rounded-3xl p-6 shadow-soft">
-            <p className="text-sm uppercase tracking-[0.2em] text-ink/60">
-              {card.label}
-            </p>
-            <h3 className="font-display text-2xl mt-4">{card.value}</h3>
+          <div key={card.label} className="app-panel metric-card rounded-[1.8rem] p-6">
+            <p className="section-kicker">{card.label}</p>
+            <h3 className="mt-5 font-display text-3xl font-semibold text-white">
+              {card.value}
+            </h3>
           </div>
         ))}
       </div>
+
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="glass rounded-3xl p-8 shadow-soft">
+        <div className="app-panel rounded-[2rem] p-6 md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="font-display text-xl">Mensalistas</h3>
-              <p className="text-sm text-ink/60 mt-2">
-                Acompanhe nome do cliente, vencimento e status de pagamento.
+              <h3 className="font-display text-xl text-white">Mensalistas</h3>
+              <p className="mt-2 text-sm text-soft">
+                Acompanhe cliente, vencimento, status de pagamento e consumo de cortes.
               </p>
             </div>
             <select
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark max-w-[220px]"
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
             >
@@ -189,63 +203,65 @@ export default function Assinaturas() {
               <option value="cancelado">Cancelado</option>
             </select>
           </div>
-          {loading ? <p className="text-sm text-ink/60 mt-6">Carregando assinaturas...</p> : null}
+
+          {loading ? <p className="mt-6 text-sm text-soft">Carregando assinaturas...</p> : null}
           {!loading && !clients.length ? (
-            <p className="text-sm text-ink/60 mt-6">Nenhum assinante encontrado.</p>
+            <p className="mt-6 text-sm text-soft">Nenhum assinante encontrado.</p>
           ) : null}
+
           {!loading && clients.length ? (
             <div className="mt-6 overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="data-table text-sm">
                 <thead>
-                  <tr className="text-left text-ink/60">
-                    <th className="py-3">Cliente</th>
-                    <th className="py-3">Assinatura</th>
-                    <th className="py-3">Vencimento</th>
-                    <th className="py-3">Pagamento</th>
-                    <th className="py-3">Cortes</th>
-                    <th className="py-3">Acoes</th>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Assinatura</th>
+                    <th>Vencimento</th>
+                    <th>Pagamento</th>
+                    <th>Cortes</th>
+                    <th>Acoes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {clients.map((client) => (
-                    <tr key={client.id} className="border-t border-ink/5 align-top">
-                      <td className="py-4">
-                        <p>{client.nome}</p>
-                        <p className="text-xs text-ink/50">{client.telefone}</p>
+                    <tr key={client.id}>
+                      <td>
+                        <p className="text-white">{client.nome}</p>
+                        <p className="text-xs text-faint">{client.telefone}</p>
                       </td>
-                      <td className="py-4">
+                      <td>
                         <p>{client.plano_nome}</p>
-                        <p className="text-xs text-ink/50">
-                          {formatCurrency(client.plano_valor)}
-                        </p>
+                        <p className="text-xs text-faint">{formatCurrency(client.plano_valor)}</p>
                       </td>
-                      <td className="py-4">{formatDate(client.data_vencimento)}</td>
-                      <td className="py-4">
-                        <span className="px-3 py-1 rounded-full bg-mint/40 text-xs">
+                      <td>{formatDate(client.data_vencimento)}</td>
+                      <td>
+                        <span className={paymentStatusClass(client.status_pagamento)}>
                           {client.status_pagamento}
                         </span>
                       </td>
-                      <td className="py-4">
+                      <td>
                         <p>Usados: {client.cortes_usados_mes}</p>
-                        <p className="text-xs text-ink/50">
+                        <p className="text-xs text-faint">
                           Restantes: {client.cortes_restantes}
                         </p>
                       </td>
-                      <td className="py-4 flex flex-col gap-2">
-                        <button
-                          className="px-3 py-2 rounded-xl bg-ink text-cream"
-                          type="button"
-                          onClick={() => handleRegisterPayment(client)}
-                        >
-                          Registrar pagamento
-                        </button>
-                        <button
-                          className="px-3 py-2 rounded-xl bg-white/70 border border-ink/10"
-                          type="button"
-                          onClick={() => handleRegisterCut(client)}
-                        >
-                          Registrar corte
-                        </button>
+                      <td>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            className="btn-gold px-3 py-2"
+                            type="button"
+                            onClick={() => handleRegisterPayment(client)}
+                          >
+                            Registrar pagamento
+                          </button>
+                          <button
+                            className="btn-ghost px-3 py-2"
+                            type="button"
+                            onClick={() => handleRegisterCut(client)}
+                          >
+                            Registrar corte
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -254,20 +270,24 @@ export default function Assinaturas() {
             </div>
           ) : null}
         </div>
-        <div className="glass rounded-3xl p-8 shadow-soft">
-          <h3 className="font-display text-xl">Novo assinante</h3>
-          <div className="mt-4 rounded-2xl bg-white/60 border border-ink/5 px-5 py-4">
-            <p className="text-sm text-ink/60">Plano unico da assinatura</p>
-            <p className="font-display text-2xl mt-2">
+
+        <div className="app-panel rounded-[2rem] p-6 md:p-8">
+          <h3 className="font-display text-xl text-white">Novo assinante</h3>
+          <div className="app-panel-muted mt-4 rounded-[1.5rem] px-5 py-4">
+            <p className="section-kicker">Plano ativo</p>
+            <p className="mt-3 font-display text-2xl text-white">
               {plan ? `${plan.nome} - ${formatCurrency(plan.valor)}` : "R$ 159,99"}
             </p>
-            <p className="text-sm text-ink/50 mt-2">
-              {plan ? `${plan.cortes_inclusos} cortes inclusos a cada ${plan.validade_dias} dias.` : "Assinatura mensal fixa."}
+            <p className="mt-2 text-sm text-soft">
+              {plan
+                ? `${plan.cortes_inclusos} cortes inclusos a cada ${plan.validade_dias} dias.`
+                : "Assinatura mensal fixa."}
             </p>
           </div>
-          <form className="flex flex-col gap-4 mt-6" onSubmit={handleCreateSubscriber}>
+
+          <form className="mt-6 flex flex-col gap-4" onSubmit={handleCreateSubscriber}>
             <input
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark"
               placeholder="Nome do cliente"
               value={subscriberForm.nome}
               onChange={(event) =>
@@ -275,7 +295,7 @@ export default function Assinaturas() {
               }
             />
             <input
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark"
               placeholder="Telefone"
               value={subscriberForm.telefone}
               onChange={(event) =>
@@ -286,7 +306,7 @@ export default function Assinaturas() {
               }
             />
             <select
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark"
               value={subscriberForm.statusPagamento}
               onChange={(event) =>
                 setSubscriberForm((current) => ({
@@ -301,7 +321,7 @@ export default function Assinaturas() {
               <option value="cancelado">Cancelado</option>
             </select>
             <textarea
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10 min-h-24"
+              className="field-dark min-h-24"
               placeholder="Observacoes"
               value={subscriberForm.observacoes}
               onChange={(event) =>
@@ -312,7 +332,7 @@ export default function Assinaturas() {
               }
             />
             <button
-              className="bg-ink text-cream rounded-2xl py-3 text-sm disabled:opacity-60"
+              className="btn-gold"
               disabled={savingSubscriber || !subscriberForm.planoId}
             >
               {savingSubscriber ? "Salvando..." : "Cadastrar assinante"}

@@ -173,21 +173,25 @@ export default function Horarios() {
   const grouped = groupByDate(horarios);
 
   return (
-    <section className="flex flex-col gap-10">
-      <Topbar title="Gestao de horarios" subtitle="Horarios" />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+    <section className="flex flex-col gap-6">
+      <Topbar
+        title="Gestao de horarios"
+        subtitle="Disponibilidade"
+        description="Monte a semana, abra horarios extras e controle disponibilidade sem fugir da nova linguagem premium do produto."
+      />
+      {error ? <p className="alert-error">{error}</p> : null}
+      {success ? <p className="alert-success">{success}</p> : null}
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div className="glass rounded-3xl p-8 shadow-soft">
-          <h3 className="font-display text-xl">Agenda semanal automatica</h3>
-          <p className="text-sm text-ink/60 mt-2">
+        <div className="app-panel rounded-[2rem] p-6 md:p-8">
+          <h3 className="font-display text-xl text-white">Agenda semanal automatica</h3>
+          <p className="mt-2 text-sm text-soft">
             Gere horarios de terca a sabado, das 07:00 as 19:00, com pausa de 12:00 a 14:00.
           </p>
           <div className="mt-6 flex flex-col gap-4">
-            <label className="text-sm text-ink/70">
+            <label className="text-sm text-soft">
               Inicio da semana
               <input
-                className="mt-2 w-full px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+                className="field-dark mt-2"
                 type="date"
                 value={weekStart}
                 onChange={(event) => setWeekStart(event.target.value)}
@@ -197,14 +201,14 @@ export default function Horarios() {
               {slots.map((slot) => (
                 <span
                   key={slot}
-                  className="px-4 py-2 rounded-full bg-white/70 border border-ink/10 text-sm"
+                  className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-2 text-sm text-soft"
                 >
                   {slot}
                 </span>
               ))}
             </div>
             <button
-              className="mt-2 bg-ink text-cream rounded-2xl px-5 py-3 text-sm disabled:opacity-60"
+              className="btn-gold mt-2"
               onClick={handleGenerateWeek}
               type="button"
               disabled={submitting}
@@ -213,11 +217,11 @@ export default function Horarios() {
             </button>
           </div>
         </div>
-        <div className="glass rounded-3xl p-8 shadow-soft">
-          <h3 className="font-display text-xl">Criar horario manual</h3>
+        <div className="app-panel rounded-[2rem] p-6 md:p-8">
+          <h3 className="font-display text-xl text-white">Criar horario manual</h3>
           <form className="flex flex-col gap-4 mt-6" onSubmit={handleManualCreate}>
             <input
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark"
               placeholder="Data (YYYY-MM-DD)"
               type="date"
               value={manualForm.data}
@@ -226,7 +230,7 @@ export default function Horarios() {
               }
             />
             <input
-              className="px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+              className="field-dark"
               placeholder="Hora (HH:MM)"
               type="time"
               value={manualForm.hora}
@@ -234,34 +238,34 @@ export default function Horarios() {
                 setManualForm((current) => ({ ...current, hora: event.target.value }))
               }
             />
-            <button className="bg-ink text-cream rounded-2xl py-3 text-sm" disabled={submitting}>
+            <button className="btn-gold" disabled={submitting}>
               Criar horario
             </button>
           </form>
         </div>
       </div>
-      <div className="glass rounded-3xl p-8 shadow-soft">
-        <h3 className="font-display text-xl">Horarios da semana</h3>
-        <p className="text-sm text-ink/60 mt-2">
+      <div className="app-panel rounded-[2rem] p-6 md:p-8">
+        <h3 className="font-display text-xl text-white">Horarios da semana</h3>
+        <p className="mt-2 text-sm text-soft">
           Somente o admin pode marcar cada horario como disponivel ou indisponivel.
         </p>
-        {loading ? <p className="text-sm text-ink/60 mt-4">Carregando horarios...</p> : null}
+        {loading ? <p className="mt-4 text-sm text-soft">Carregando horarios...</p> : null}
         {!loading && !horarios.length ? (
-          <p className="text-sm text-ink/60 mt-4">Nenhum horario encontrado para este periodo.</p>
+          <p className="mt-4 text-sm text-soft">Nenhum horario encontrado para este periodo.</p>
         ) : null}
         {!loading && horarios.length ? (
           <div className="mt-6 flex flex-col gap-6">
             {Object.entries(grouped).map(([date, items]) => (
-              <div key={date} className="rounded-3xl bg-white/45 border border-ink/5 p-6">
+              <div key={date} className="app-panel-muted rounded-[1.6rem] p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h4 className="font-display text-lg">{formatDateLabel(date)}</h4>
-                    <span className="text-xs uppercase tracking-[0.2em] text-ink/50">
+                    <h4 className="font-display text-lg text-white">{formatDateLabel(date)}</h4>
+                    <span className="text-xs uppercase tracking-[0.2em] text-faint">
                       {items.length} horarios
                     </span>
                   </div>
                   <button
-                    className="rounded-2xl bg-red-600 px-4 py-2 text-sm text-white disabled:opacity-60"
+                    className="btn-danger px-4 py-2"
                     disabled={deletingDate === date}
                     onClick={() => handleDeleteDate(date)}
                     type="button"
@@ -273,19 +277,19 @@ export default function Horarios() {
                   {items.map((horario) => (
                     <div
                       key={horario.id}
-                      className="rounded-2xl bg-white/70 border border-ink/10 px-4 py-4 flex items-center justify-between gap-4"
+                      className="rounded-[1.3rem] border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)] px-4 py-4 flex items-center justify-between gap-4"
                     >
                       <div>
-                        <p className="font-medium">{horario.hora}</p>
-                        <p className="text-xs text-ink/50">Controle manual do admin</p>
+                        <p className="font-medium text-white">{horario.hora}</p>
+                        <p className="text-xs text-faint">Controle manual do admin</p>
                       </div>
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => handleToggleAvailability(horario, true)}
                           disabled={updatingId === horario.id}
-                          className={`px-3 py-2 rounded-xl text-sm text-white disabled:opacity-60 ${
-                            horario.disponivel ? "bg-emerald-600" : "bg-emerald-500/70"
+                          className={`btn-success px-3 py-2 ${
+                            horario.disponivel ? "" : "opacity-70"
                           }`}
                         >
                           Sim
@@ -294,8 +298,8 @@ export default function Horarios() {
                           type="button"
                           onClick={() => handleToggleAvailability(horario, false)}
                           disabled={updatingId === horario.id}
-                          className={`px-3 py-2 rounded-xl text-sm text-white disabled:opacity-60 ${
-                            !horario.disponivel ? "bg-red-600" : "bg-red-500/70"
+                          className={`btn-danger px-3 py-2 ${
+                            !horario.disponivel ? "" : "opacity-70"
                           }`}
                         >
                           Nao

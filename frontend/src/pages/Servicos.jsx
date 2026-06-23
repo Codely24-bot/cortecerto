@@ -119,56 +119,64 @@ export default function Servicos() {
   }
 
   return (
-    <section className="flex flex-col gap-10">
-      <Topbar title="Catalogo de servicos" subtitle="Servicos" />
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+    <section className="flex flex-col gap-6">
+      <Topbar
+        title="Catalogo de servicos"
+        subtitle="Servicos"
+        description="Defina os servicos da casa, duracao, ticket e posicionamento comercial em um painel mais elegante."
+      />
+
+      {error ? <p className="alert-error">{error}</p> : null}
+      {success ? <p className="alert-success">{success}</p> : null}
+
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
-        <div className="glass rounded-3xl p-8 shadow-soft">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h3 className="font-display text-xl">Servicos cadastrados</h3>
-              <p className="text-sm text-ink/60 mt-2">
-                O faturamento estimado do dashboard usa os valores daqui.
-              </p>
-            </div>
+        <div className="app-panel rounded-[2rem] p-6 md:p-8">
+          <div>
+            <h3 className="font-display text-xl text-white">Servicos cadastrados</h3>
+            <p className="mt-2 text-sm text-soft">
+              O faturamento estimado do dashboard usa os valores definidos aqui.
+            </p>
           </div>
-          {loading ? <p className="text-sm text-ink/60 mt-6">Carregando servicos...</p> : null}
+
+          {loading ? <p className="mt-6 text-sm text-soft">Carregando servicos...</p> : null}
           {!loading && !servicos.length ? (
-            <p className="text-sm text-ink/60 mt-6">Nenhum servico cadastrado.</p>
+            <p className="mt-6 text-sm text-soft">Nenhum servico cadastrado.</p>
           ) : null}
+
           {!loading && servicos.length ? (
             <div className="mt-6 overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="data-table text-sm">
                 <thead>
-                  <tr className="text-left text-ink/60">
-                    <th className="py-3">Servico</th>
-                    <th className="py-3">Duracao</th>
-                    <th className="py-3">Preco</th>
-                    <th className="py-3">Acoes</th>
+                  <tr>
+                    <th>Servico</th>
+                    <th>Duracao</th>
+                    <th>Preco</th>
+                    <th>Acoes</th>
                   </tr>
                 </thead>
                 <tbody>
                   {servicos.map((servico) => (
-                    <tr key={servico.id} className="border-t border-ink/5">
-                      <td className="py-4">{servico.nome}</td>
-                      <td className="py-4">{servico.duracao} min</td>
-                      <td className="py-4">{toCurrency(servico.preco)}</td>
-                      <td className="py-4 flex gap-2">
-                        <button
-                          className="px-3 py-2 rounded-xl bg-white/70 border border-ink/10"
-                          onClick={() => startEdit(servico)}
-                          type="button"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className="px-3 py-2 rounded-xl bg-ink text-cream"
-                          onClick={() => handleDelete(servico)}
-                          type="button"
-                        >
-                          Remover
-                        </button>
+                    <tr key={servico.id}>
+                      <td>{servico.nome}</td>
+                      <td>{servico.duracao} min</td>
+                      <td>{toCurrency(servico.preco)}</td>
+                      <td>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            className="btn-ghost px-3 py-2"
+                            onClick={() => startEdit(servico)}
+                            type="button"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            className="btn-danger px-3 py-2"
+                            onClick={() => handleDelete(servico)}
+                            type="button"
+                          >
+                            Remover
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -177,26 +185,29 @@ export default function Servicos() {
             </div>
           ) : null}
         </div>
-        <div className="glass rounded-3xl p-8 shadow-soft">
-          <h3 className="font-display text-xl">
+
+        <div className="app-panel rounded-[2rem] p-6 md:p-8">
+          <h3 className="font-display text-xl text-white">
             {editingId ? "Editar servico" : "Novo servico"}
           </h3>
-          <form className="flex flex-col gap-4 mt-6" onSubmit={handleSubmit}>
-            <label className="text-sm text-ink/70">
+
+          <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit}>
+            <label className="text-sm text-soft">
               Nome
               <input
-                className="mt-2 w-full px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
-                placeholder="Ex.: Corte degradê"
+                className="field-dark mt-2"
+                placeholder="Ex.: Corte degrade"
                 value={form.nome}
                 onChange={(event) =>
                   setForm((current) => ({ ...current, nome: event.target.value }))
                 }
               />
             </label>
-            <label className="text-sm text-ink/70">
+
+            <label className="text-sm text-soft">
               Duracao em minutos
               <input
-                className="mt-2 w-full px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+                className="field-dark mt-2"
                 type="number"
                 min="1"
                 value={form.duracao}
@@ -205,10 +216,11 @@ export default function Servicos() {
                 }
               />
             </label>
-            <label className="text-sm text-ink/70">
+
+            <label className="text-sm text-soft">
               Preco
               <input
-                className="mt-2 w-full px-4 py-3 rounded-2xl bg-white/70 border border-ink/10"
+                className="field-dark mt-2"
                 type="number"
                 min="0.01"
                 step="0.01"
@@ -219,18 +231,13 @@ export default function Servicos() {
                 }
               />
             </label>
-            <button
-              className="bg-ink text-cream rounded-2xl py-3 text-sm disabled:opacity-60"
-              disabled={saving}
-            >
+
+            <button className="btn-gold" disabled={saving}>
               {saving ? "Salvando..." : editingId ? "Salvar alteracoes" : "Cadastrar servico"}
             </button>
+
             {editingId ? (
-              <button
-                className="bg-white/70 border border-ink/10 rounded-2xl py-3 text-sm"
-                onClick={resetForm}
-                type="button"
-              >
+              <button className="btn-ghost" onClick={resetForm} type="button">
                 Cancelar edicao
               </button>
             ) : null}

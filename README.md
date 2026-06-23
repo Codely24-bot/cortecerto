@@ -1,4 +1,6 @@
-# Sistema de Agendamentos para Barbearia
+# MESTRE DA NAVALHA
+
+Web app para barbearias com painel administrativo, backend e integracao com chatbot.
 
 Este projeto possui 3 camadas principais:
 
@@ -74,8 +76,9 @@ Arquivos de exemplo para deploy:
 Para usar com Supabase localmente:
 
 1. Preencha `backend/.env`.
-2. Use a connection string correta do Supabase.
-3. Rode `npm run db:apply-schema --workspace backend` se quiser aplicar manualmente.
+2. Se estiver rodando localmente, a URI direta `db.<projeto>.supabase.co` pode ser usada.
+3. No Railway, use a URI de `Connection Pooling`.
+4. Rode `npm run db:apply-schema --workspace backend` se quiser aplicar manualmente.
 
 Schema do banco:
 
@@ -110,8 +113,8 @@ Variaveis recomendadas para o servico do chatbot:
 
 - `PORT=3000`
 - `API_URL=https://seu-app-principal.up.railway.app`
-- `BARBEARIA_ID=default`
-- `BARBEARIA_NOME=BARBEARIA DO NEGAO`
+- `BARBEARIA_ID=mestre-da-navalha`
+- `BARBEARIA_NOME=MESTRE DA NAVALHA`
 - `ADMIN_PASS=sua-senha-admin`
 
 Rotas uteis do servico do chatbot:
