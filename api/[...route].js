@@ -9,6 +9,49 @@ import {
 
 let appPromise;
 
+function appendQueryParam(searchParams, key, value) {
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendQueryParam(searchParams, key, item));
+    return;
+  }
+
+  if (value === undefined) {
+    return;
+  }
+
+  searchParams.append(key, String(value));
+}
+
+function buildExpressUrl(req) {
+  const routeParam = req.query?.route;
+  const routeSegments = Array.isArray(routeParam)
+    ? routeParam.flatMap((segment) => String(segment).split("/").filter(Boolean))
+    : typeof routeParam === "string" && routeParam
+      ? routeParam.split("/").filter(Boolean)
+      : [];
+
+  const queryParams = new URLSearchParams();
+
+  Object.entries(req.query || {}).forEach(([key, value]) => {
+    if (key === "route") {
+      return;
+    }
+
+    appendQueryParam(queryParams, key, value);
+  });
+
+  let pathname;
+
+  if (routeSegments.length > 0) {
+    pathname = `/${routeSegments.map((segment) => encodeURIComponent(segment)).join("/")}`;
+  } else {
+    pathname = (req.url || "/").replace(/^\/api/, "") || "/";
+  }
+
+  const queryString = queryParams.toString();
+  return queryString ? `${pathname}?${queryString}` : pathname;
+}
+
 async function bootstrapApp() {
   const validation = validateRuntimeConfig();
   const runtimeSummary = getRuntimeSummary();
@@ -41,13 +84,56 @@ async function getApp() {
   return appPromise;
 }
 
+async function runExpressApp(app, req, res) {
+  await new Promise((resolve, reject) => {
+    const cleanup = () => {
+      res.off("finish", handleFinish);
+      res.off("close", handleClose);
+      res.off("error", handleError);
+    };
+
+    const handleFinish = () => {
+      cleanup();
+      resolve();
+    };
+
+    const handleClose = () => {
+      cleanup();
+      resolve();
+    };
+
+    const handleError = (error) => {
+      cleanup();
+      reject(error);
+    };
+
+    res.on("finish", handleFinish);
+    res.on("close", handleClose);
+    res.on("error", handleError);
+
+    app.handle(req, res, (error) => {
+      if (error) {
+        cleanup();
+        reject(error);
+        return;
+      }
+
+      if (!res.writableEnded) {
+        cleanup();
+        resolve();
+      }
+    });
+  });
+}
+
 export default async function handler(req, res) {
   const originalUrl = req.url;
-  req.url = req.url.replace(/^\/api/, "") || "/";
+  req.url = buildExpressUrl(req);
 
   try {
     const app = await getApp();
-    return app(req, res);
+    await runExpressApp(app, req, res);
+    return;
   } catch (error) {
     console.error("Falha ao inicializar handler do Vercel:", error);
     return res.status(500).json({
@@ -57,4 +143,3 @@ export default async function handler(req, res) {
     req.url = originalUrl;
   }
 }
-

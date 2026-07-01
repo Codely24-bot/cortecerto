@@ -6,3 +6,5 @@ dist
 .wwebjs_auth
 .wwebjs_cache
 *.log
+
+.vercel

@@ -1,7 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { pool, query } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { getRequestBarbershopId, requireAdmin } from "../middleware/auth.js";
 import {
   sendChatbotCompletionThanks,
   sendChatbotConfirmation
@@ -32,6 +32,10 @@ function asExecutor(client) {
   };
 }
 
+function resolveBarbershopId(req, providedBarbershopId) {
+  return req.auth?.barbeariaId || providedBarbershopId || DEFAULT_BARBERSHOP_ID;
+}
+
 async function ensureServiceExists(client, servico, barbeariaId) {
   const serviceResult = await client.query(
     `
@@ -59,7 +63,7 @@ router.post("/agendar", asyncHandler(async (req, res) => {
   try {
     await client.query("BEGIN");
     await deactivateExpiredOpenSlots();
-    const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+    const currentBarbershop = resolveBarbershopId(req, barbeariaId);
     const { date: currentDate, time: currentTime } = getCurrentSlotReference();
 
     if (data < currentDate || (data === currentDate && hora < currentTime)) {
@@ -139,16 +143,17 @@ router.post("/agendar", asyncHandler(async (req, res) => {
 }));
 
 router.get("/agendamentos", requireAdmin, asyncHandler(async (req, res) => {
-  const { data, barbeariaId } = req.query;
+  const { data } = req.query;
+  const currentBarbershop = getRequestBarbershopId(req);
   const result = await query(
     `
       SELECT *
       FROM agendamentos
       WHERE ($1::date IS NULL OR data = $1::date)
-        AND barbearia_id = COALESCE($2, barbearia_id)
+        AND barbearia_id = $2
       ORDER BY data ASC, hora ASC
     `,
-    [data || null, barbeariaId || null]
+    [data || null, currentBarbershop]
   );
 
   return res.json(result.rows);
@@ -157,6 +162,7 @@ router.get("/agendamentos", requireAdmin, asyncHandler(async (req, res) => {
 router.put("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, servico, data, hora, nome, telefone } = req.body || {};
+  const currentBarbershop = getRequestBarbershopId(req);
   const client = await pool.connect();
 
   try {
@@ -167,9 +173,10 @@ router.put("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) => {
         SELECT *
         FROM agendamentos
         WHERE id = $1
+          AND barbearia_id = $2
         LIMIT 1
       `,
-      [id]
+      [id, currentBarbershop]
     );
 
     if (!atual.rows.length) {
@@ -252,6 +259,7 @@ router.put("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) => {
             nome = COALESCE($5, nome),
             telefone = COALESCE($6, telefone)
         WHERE id = $7
+          AND barbearia_id = $8
         RETURNING *
       `,
       [
@@ -261,7 +269,8 @@ router.put("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) => {
         hora || null,
         nome || null,
         telefone || null,
-        id
+        id,
+        currentBarbershop
       ]
     );
 
@@ -285,6 +294,7 @@ router.put("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) => {
 
 router.delete("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const currentBarbershop = getRequestBarbershopId(req);
   const client = await pool.connect();
 
   try {
@@ -295,9 +305,10 @@ router.delete("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) =>
         UPDATE agendamentos
         SET status = 'cancelado'
         WHERE id = $1
+          AND barbearia_id = $2
         RETURNING *
       `,
-      [id]
+      [id, currentBarbershop]
     );
 
     if (result.rows.length === 0) {
@@ -329,6 +340,7 @@ router.delete("/agendamento/:id", requireAdmin, asyncHandler(async (req, res) =>
 
 router.post("/agendamento/:id/concluir", requireAdmin, asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const currentBarbershop = getRequestBarbershopId(req);
   const client = await pool.connect();
 
   let agendamento;
@@ -341,9 +353,10 @@ router.post("/agendamento/:id/concluir", requireAdmin, asyncHandler(async (req, 
         SELECT *
         FROM agendamentos
         WHERE id = $1
+          AND barbearia_id = $2
         LIMIT 1
       `,
-      [id]
+      [id, currentBarbershop]
     );
 
     if (!currentResult.rows.length) {
@@ -363,54 +376,13 @@ router.post("/agendamento/:id/concluir", requireAdmin, asyncHandler(async (req, 
         UPDATE agendamentos
         SET status = 'concluido'
         WHERE id = $1
+          AND barbearia_id = $2
         RETURNING *
       `,
-      [id]
+      [id, currentBarbershop]
     );
 
     agendamento = result.rows[0];
-
-    const paymentExists = await client.query(
-      `
-        SELECT id
-        FROM pagamentos_atendimento
-        WHERE agendamento_id = $1
-        LIMIT 1
-      `,
-      [id]
-    );
-
-    if (!paymentExists.rows.length) {
-      const serviceResult = await client.query(
-        `
-          SELECT preco
-          FROM servicos
-          WHERE barbearia_id = $1
-            AND nome = $2
-          LIMIT 1
-        `,
-        [agendamento.barbearia_id, agendamento.servico]
-      );
-
-      const servicePrice = Number(serviceResult.rows[0]?.preco || 0);
-
-      await client.query(
-        `
-          INSERT INTO pagamentos_atendimento
-            (agendamento_id, barbearia_id, cliente_nome, cliente_telefone, servico, valor, data_pagamento, status, metodo)
-          VALUES
-            ($1, $2, $3, $4, $5, $6, CURRENT_DATE, 'pago', 'presencial')
-        `,
-        [
-          agendamento.id,
-          agendamento.barbearia_id,
-          agendamento.nome,
-          agendamento.telefone,
-          agendamento.servico,
-          servicePrice
-        ]
-      );
-    }
 
     await client.query("COMMIT");
   } catch (error) {

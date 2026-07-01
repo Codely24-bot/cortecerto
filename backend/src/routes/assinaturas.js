@@ -1,7 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { pool, query } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { getRequestBarbershopId, requireAdmin } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { DEFAULT_BARBERSHOP_ID } from "../config.js";
 import {
@@ -112,7 +112,7 @@ async function getSubscriberById(client, subscriberId, barbeariaId) {
 }
 
 router.get("/assinaturas/resumo", requireAdmin, asyncHandler(async (req, res) => {
-  const currentBarbershop = req.query.barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const currentBarbershop = getRequestBarbershopId(req);
   await ensureDefaultPlans(currentBarbershop);
 
   const [summaryResult, expiringResult, paymentsResult] = await Promise.all([
@@ -222,7 +222,7 @@ router.get("/assinaturas/resumo", requireAdmin, asyncHandler(async (req, res) =>
 }));
 
 router.get("/assinaturas/planos", requireAdmin, asyncHandler(async (req, res) => {
-  const currentBarbershop = req.query.barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const currentBarbershop = getRequestBarbershopId(req);
   await ensureDefaultPlans(currentBarbershop);
 
   const result = await query(
@@ -239,7 +239,7 @@ router.get("/assinaturas/planos", requireAdmin, asyncHandler(async (req, res) =>
 }));
 
 router.get("/assinaturas/clientes", requireAdmin, asyncHandler(async (req, res) => {
-  const currentBarbershop = req.query.barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const currentBarbershop = getRequestBarbershopId(req);
   const status = req.query.status;
   await ensureDefaultPlans(currentBarbershop);
 
@@ -293,8 +293,8 @@ router.post("/assinaturas/clientes", requireAdmin, asyncHandler(async (req, res)
     return res.status(400).json({ error: "Dados invalidos", details: parsed.error.flatten() });
   }
 
-  const { barbeariaId, planoId, nome, telefone, dataAdesao, dataVencimento, statusPagamento, observacoes } = parsed.data;
-  const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const { planoId, nome, telefone, dataAdesao, dataVencimento, statusPagamento, observacoes } = parsed.data;
+  const currentBarbershop = getRequestBarbershopId(req);
   const plan = await getPlanById(planoId, currentBarbershop);
 
   if (!plan) {
@@ -332,11 +332,12 @@ router.post("/assinaturas/clientes/:id/pagamentos", requireAdmin, asyncHandler(a
   }
 
   const { id } = req.params;
+  const currentBarbershop = getRequestBarbershopId(req);
   const client = await pool.connect();
 
   try {
     await client.query("BEGIN");
-    const subscriber = await getSubscriberById(client, id, DEFAULT_BARBERSHOP_ID);
+    const subscriber = await getSubscriberById(client, id, currentBarbershop);
 
     if (!subscriber) {
       await client.query("ROLLBACK");
@@ -364,8 +365,9 @@ router.post("/assinaturas/clientes/:id/pagamentos", requireAdmin, asyncHandler(a
         SET status_pagamento = $1,
             data_vencimento = $2::date
         WHERE id = $3
+          AND barbearia_id = $4
       `,
-      [paymentStatus === "pago" ? "pago" : paymentStatus, nextDueDate, id]
+      [paymentStatus === "pago" ? "pago" : paymentStatus, nextDueDate, id, currentBarbershop]
     );
 
     await scheduleSubscriptionReminders(
@@ -396,10 +398,11 @@ router.post("/assinaturas/clientes/:id/consumos", requireAdmin, asyncHandler(asy
   }
 
   const { id } = req.params;
+  const currentBarbershop = getRequestBarbershopId(req);
   const client = await pool.connect();
 
   try {
-    const subscriber = await getSubscriberById(client, id, DEFAULT_BARBERSHOP_ID);
+    const subscriber = await getSubscriberById(client, id, currentBarbershop);
 
     if (!subscriber) {
       return res.status(404).json({ error: "Assinante nao encontrado" });

@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Topbar from "../components/Topbar.jsx";
-import { apiFetch } from "../api.js";
+import { apiFetch, resolveChatbotQrUrl } from "../api.js";
 
-const CHATBOT_QR_URL =
-  import.meta.env.VITE_CHATBOT_URL ||
-  `${import.meta.env.VITE_API_URL || ""}/qr`;
+const CHATBOT_QR_URL = resolveChatbotQrUrl();
 
 function getToday() {
   return new Date().toISOString().slice(0, 10);

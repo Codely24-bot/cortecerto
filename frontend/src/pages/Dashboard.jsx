@@ -95,6 +95,25 @@ export default function Dashboard() {
     { label: "Pendentes", value: subscriptionSummary?.pagamentos_pendentes || 0, className: "status-pill--pendente" }
   ];
 
+  const financialItems = [
+    {
+      label: "Faturamento bruto",
+      value: formatCurrency(summary?.faturamento_estimado || 0)
+    },
+    {
+      label: "Receita recorrente",
+      value: formatCurrency(subscriptionSummary?.receita_recorrente || 0)
+    },
+    {
+      label: "Clientes distintos hoje",
+      value: String(totalClients)
+    },
+    {
+      label: "Capacidade restante",
+      value: `${freeSlots} horarios`
+    }
+  ];
+
   const upcomingRenewals = subscriptionSummary?.vencimentos_proximos || [];
 
   return (
@@ -133,7 +152,7 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <div className="mt-8 grid gap-6 2xl:grid-cols-[minmax(0,0.92fr)_minmax(360px,1.08fr)]">
             <div className="space-y-5">
               {performanceItems.map((item) => (
                 <div key={item.label} className="app-panel-muted rounded-[1.4rem] p-4">
@@ -150,37 +169,33 @@ export default function Dashboard() {
 
             <div className="app-panel-muted rounded-[1.6rem] p-5">
               <p className="section-kicker">Resumo financeiro</p>
-              <div className="mt-5 space-y-4">
-                <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-soft">Faturamento bruto</span>
-                  <strong className="text-white">
-                    {formatCurrency(summary?.faturamento_estimado || 0)}
-                  </strong>
-                </div>
-                <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-soft">Receita recorrente</span>
-                  <strong className="text-[#f2c86b]">
-                    {formatCurrency(subscriptionSummary?.receita_recorrente || 0)}
-                  </strong>
-                </div>
-                <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-soft">Clientes distintos hoje</span>
-                  <strong className="text-white">{totalClients}</strong>
-                </div>
-                <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-soft">Capacidade restante</span>
-                  <strong className="text-white">{freeSlots} horarios</strong>
-                </div>
+              <div className="mt-5 space-y-3">
+                {financialItems.map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[1.2rem] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] px-4 py-4"
+                  >
+                    <div className="flex items-end justify-between gap-4">
+                      <p className="max-w-[55%] text-sm leading-6 text-soft">{item.label}</p>
+                      <strong className="text-right font-display text-[1.85rem] font-semibold leading-none text-white">
+                        {item.value}
+                      </strong>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className="gold-divider my-6" />
 
               <div className="grid gap-3 sm:grid-cols-2">
                 {statusItems.map((item) => (
-                  <div key={item.label} className="rounded-[1.2rem] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-4">
+                  <div
+                    key={item.label}
+                    className="rounded-[1.2rem] border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.02)] p-4"
+                  >
                     <p className="text-sm text-soft">{item.label}</p>
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <p className="font-display text-2xl font-semibold text-white">
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <p className="font-display text-3xl font-semibold leading-none text-white">
                         {item.value}
                       </p>
                       <span className={`status-pill ${item.className}`}>{item.label}</span>

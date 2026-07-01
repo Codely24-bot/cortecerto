@@ -6,22 +6,30 @@ import horariosRoutes from "./routes/horarios.js";
 import agendamentosRoutes from "./routes/agendamentos.js";
 import adminRoutes from "./routes/admin.js";
 import relatoriosRoutes from "./routes/relatorios.js";
+import { attachAuthContext } from "./middleware/auth.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import servicosRoutes from "./routes/servicos.js";
 import assinaturasRoutes from "./routes/assinaturas.js";
+import financeiroRoutes from "./routes/financeiro.js";
 import { checkDatabaseConnection, getDatabaseStatus } from "./db.js";
+import { getChatbotPublicUrl } from "./config.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
 
 function registerDisabledChatbotRoutes(application) {
+  const chatbotPublicUrl = getChatbotPublicUrl();
+  const externalQrUrl = chatbotPublicUrl ? `${chatbotPublicUrl}/qr` : "";
+  const externalQrImageUrl = chatbotPublicUrl ? `${chatbotPublicUrl}/qr.png` : "";
   const payload = {
-    status: "disabled",
-    qrPagePath: "/qr",
-    qrImagePath: "/qr.png",
+    status: chatbotPublicUrl ? "external" : "disabled",
+    qrPagePath: chatbotPublicUrl ? externalQrUrl : "/qr",
+    qrImagePath: chatbotPublicUrl ? externalQrImageUrl : "/qr.png",
     updatedAt: null,
-    message: "Chatbot desativado neste ambiente."
+    message: chatbotPublicUrl
+      ? "Chatbot disponivel em servico externo."
+      : "Chatbot desativado neste ambiente."
   };
 
   application.get("/chatbot/status", (req, res) => {
@@ -29,10 +37,18 @@ function registerDisabledChatbotRoutes(application) {
   });
 
   application.get("/qr.png", (req, res) => {
+    if (externalQrImageUrl) {
+      return res.redirect(307, externalQrImageUrl);
+    }
+
     res.status(404).json(payload);
   });
 
   application.get("/qr", (req, res) => {
+    if (externalQrUrl) {
+      return res.redirect(307, externalQrUrl);
+    }
+
     res.type("html").send(`<!DOCTYPE html>
 <html lang="pt-BR">
   <head>
@@ -109,6 +125,7 @@ export async function createApp({
 
   app.use(cors());
   app.use(express.json());
+  app.use(attachAuthContext);
 
   app.get("/health", async (req, res) => {
     const status = getDatabaseStatus();
@@ -138,6 +155,7 @@ export async function createApp({
   app.use(relatoriosRoutes);
   app.use(servicosRoutes);
   app.use(assinaturasRoutes);
+  app.use(financeiroRoutes);
 
   if (enableChatbot) {
     try {

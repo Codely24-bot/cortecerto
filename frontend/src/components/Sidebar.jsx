@@ -1,8 +1,10 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import BrandLockup from "./BrandLockup.jsx";
+import { clearAuthSession, getCurrentUser } from "../api.js";
 
 const links = [
   { to: "/dashboard", label: "Dashboard", hint: "Visao executiva" },
+  { to: "/financeiro", label: "Financeiro", hint: "Pagamentos do caixa" },
   { to: "/agenda", label: "Agendamentos", hint: "Atendimentos do dia" },
   { to: "/horarios", label: "Horarios", hint: "Escala e disponibilidade" },
   { to: "/servicos", label: "Servicos", hint: "Catalogo e precos" },
@@ -10,6 +12,16 @@ const links = [
 ];
 
 export default function Sidebar({ mobile = false, onNavigate, onClose }) {
+  const navigate = useNavigate();
+  const user = getCurrentUser();
+
+  function handleLogout() {
+    clearAuthSession();
+    onClose?.();
+    onNavigate?.();
+    navigate("/", { replace: true });
+  }
+
   return (
     <aside
       id={mobile ? "mobile-navigation" : undefined}
@@ -52,9 +64,7 @@ export default function Sidebar({ mobile = false, onNavigate, onClose }) {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p
-                    className={`font-medium ${
-                      isActive ? "text-[#f2c86b]" : "text-[rgba(246,240,230,0.96)]"
-                    }`}
+                    className="font-medium text-white"
                   >
                     {link.label}
                   </p>
@@ -72,10 +82,23 @@ export default function Sidebar({ mobile = false, onNavigate, onClose }) {
       </nav>
 
       <div className="mt-auto rounded-[1.6rem] border border-[rgba(242,200,107,0.14)] bg-[rgba(255,255,255,0.02)] p-4">
-        <p className="section-kicker">Operacao</p>
-        <p className="mt-3 text-sm text-soft">
-          Controle agenda, clientes, faturamento e recorrencia em um unico painel.
+        <p className="section-kicker">Conta SaaS</p>
+        <p className="mt-3 font-medium text-white">
+          {user?.barbearia?.nome || "Barbearia"}
         </p>
+        <p className="mt-2 text-sm text-soft">
+          {user?.nome || "Usuario"} • {user?.email || "sem e-mail"}
+        </p>
+        <p className="mt-3 text-xs uppercase tracking-[0.18em] text-faint">
+          R$ {Number(user?.barbearia?.valorMensal || 99.9).toFixed(2).replace(".", ",")}/mes
+        </p>
+        <button
+          className="btn-ghost mt-4 w-full"
+          onClick={handleLogout}
+          type="button"
+        >
+          Sair
+        </button>
       </div>
     </aside>
   );

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Sidebar from "./components/Sidebar.jsx";
 import BrandLockup from "./components/BrandLockup.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Financeiro from "./pages/Financeiro.jsx";
 import Agenda from "./pages/Agenda.jsx";
 import Horarios from "./pages/Horarios.jsx";
 import Login from "./pages/Login.jsx";
@@ -10,14 +11,38 @@ import Servicos from "./pages/Servicos.jsx";
 import Assinaturas from "./pages/Assinaturas.jsx";
 import { getToken } from "./api.js";
 
+function HomeRoute() {
+  return getToken() ? <Navigate to="/dashboard" replace /> : <Login />;
+}
+
 function ProtectedLayout({ children }) {
   const location = useLocation();
   const token = getToken();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarMounted, setSidebarMounted] = useState(false);
 
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      setSidebarMounted(true);
+      return undefined;
+    }
+
+    if (!sidebarMounted) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setSidebarMounted(false);
+    }, 320);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [sidebarMounted, sidebarOpen]);
 
   useEffect(() => {
     if (!sidebarOpen) {
@@ -84,8 +109,10 @@ function ProtectedLayout({ children }) {
               </div>
             </div>
 
-            {sidebarOpen ? (
-              <div className="mobile-drawer-shell is-open lg:hidden">
+            {sidebarMounted ? (
+              <div
+                className={`mobile-drawer-shell ${sidebarOpen ? "is-open" : "is-mounted"} lg:hidden`}
+              >
                 <button
                   aria-label="Fechar menu"
                   className="mobile-drawer-backdrop"
@@ -113,12 +140,20 @@ function ProtectedLayout({ children }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Login />} />
+      <Route path="/" element={<HomeRoute />} />
       <Route
         path="/dashboard"
         element={
           <ProtectedLayout>
             <Dashboard />
+          </ProtectedLayout>
+        }
+      />
+      <Route
+        path="/financeiro"
+        element={
+          <ProtectedLayout>
+            <Financeiro />
           </ProtectedLayout>
         }
       />

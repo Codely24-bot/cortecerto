@@ -1,7 +1,7 @@
 import express from "express";
 import { z } from "zod";
 import { query } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { getRequestBarbershopId, requireAdmin } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { DEFAULT_BARBERSHOP_ID } from "../config.js";
 import {
@@ -75,12 +75,17 @@ function buildWeeklyDates(startDateValue) {
   return dates;
 }
 
+function resolveBarbershopId(req, providedBarbershopId) {
+  return req.auth?.barbeariaId || providedBarbershopId || DEFAULT_BARBERSHOP_ID;
+}
+
 router.get("/horarios-disponiveis", asyncHandler(async (req, res) => {
   const { data, barbeariaId } = req.query;
   if (!data) {
     return res.status(400).json({ error: "Parametro data e obrigatorio" });
   }
 
+  const currentBarbershop = resolveBarbershopId(req, barbeariaId);
   await deactivateExpiredOpenSlots();
   const { date: currentDate, time: currentTime } = getCurrentSlotReference();
 
@@ -95,7 +100,7 @@ router.get("/horarios-disponiveis", asyncHandler(async (req, res) => {
        AND a.barbearia_id = h.barbearia_id
       WHERE h.data = $1
         AND h.disponivel = true
-        AND h.barbearia_id = COALESCE($2, h.barbearia_id)
+        AND h.barbearia_id = $2
         AND a.id IS NULL
         AND (
           h.data > $3::date
@@ -103,7 +108,7 @@ router.get("/horarios-disponiveis", asyncHandler(async (req, res) => {
         )
       ORDER BY h.hora ASC
     `,
-    [data, barbeariaId || null, currentDate, currentTime]
+    [data, currentBarbershop, currentDate, currentTime]
   );
 
   return res.json(result.rows.map((row) => row.hora));
@@ -111,6 +116,7 @@ router.get("/horarios-disponiveis", asyncHandler(async (req, res) => {
 
 router.get("/dias-disponiveis", asyncHandler(async (req, res) => {
   const { dataInicial, barbeariaId } = req.query;
+  const currentBarbershop = resolveBarbershopId(req, barbeariaId);
   const datas = buildWeeklyDates(
     typeof dataInicial === "string" && dataInicial ? dataInicial : undefined
   );
@@ -136,11 +142,11 @@ router.get("/dias-disponiveis", asyncHandler(async (req, res) => {
        AND a.status != 'cancelado'
        AND a.barbearia_id = h.barbearia_id
       WHERE h.data = ANY($1::date[])
-        AND h.barbearia_id = COALESCE($2, h.barbearia_id)
+        AND h.barbearia_id = $2
       GROUP BY h.data
       ORDER BY h.data ASC
     `,
-    [datas, barbeariaId || null, currentDate, currentTime]
+    [datas, currentBarbershop, currentDate, currentTime]
   );
 
   const disponibilidadePorData = new Map(
@@ -158,7 +164,8 @@ router.get("/dias-disponiveis", asyncHandler(async (req, res) => {
 }));
 
 router.get("/horarios", requireAdmin, asyncHandler(async (req, res) => {
-  const { dataInicial, dataFinal, barbeariaId } = req.query;
+  const { dataInicial, dataFinal } = req.query;
+  const currentBarbershop = getRequestBarbershopId(req);
   await deactivateExpiredOpenSlots();
   const result = await query(
     `
@@ -166,10 +173,10 @@ router.get("/horarios", requireAdmin, asyncHandler(async (req, res) => {
       FROM horarios h
       WHERE ($1::date IS NULL OR h.data >= $1)
         AND ($2::date IS NULL OR h.data <= $2)
-        AND h.barbearia_id = COALESCE($3, h.barbearia_id)
+        AND h.barbearia_id = $3
       ORDER BY h.data ASC, h.hora ASC
     `,
-    [dataInicial || null, dataFinal || null, barbeariaId || null]
+    [dataInicial || null, dataFinal || null, currentBarbershop]
   );
 
   return res.json(result.rows);
@@ -182,6 +189,7 @@ router.post("/horarios", requireAdmin, asyncHandler(async (req, res) => {
   }
 
   const { barbeariaId, data, hora } = parsed.data;
+  const currentBarbershop = resolveBarbershopId(req, barbeariaId);
   const { date: currentDate, time: currentTime } = getCurrentSlotReference();
 
   if (data < currentDate || (data === currentDate && hora < currentTime)) {
@@ -201,7 +209,7 @@ router.post("/horarios", requireAdmin, asyncHandler(async (req, res) => {
       )
       RETURNING *
     `,
-    [barbeariaId || DEFAULT_BARBERSHOP_ID, data, hora]
+    [currentBarbershop, data, hora]
   );
 
   if (!result.rows.length) {
@@ -218,6 +226,7 @@ router.post("/horarios/gerar-semana", requireAdmin, asyncHandler(async (req, res
   }
 
   const { barbeariaId, dataInicial } = parsed.data;
+  const currentBarbershop = resolveBarbershopId(req, barbeariaId);
   const datas = buildWeeklyDates(dataInicial);
   const inserted = [];
 
@@ -236,7 +245,7 @@ router.post("/horarios/gerar-semana", requireAdmin, asyncHandler(async (req, res
           )
           RETURNING *
         `,
-        [barbeariaId || DEFAULT_BARBERSHOP_ID, data, hora]
+        [currentBarbershop, data, hora]
       );
 
       if (result.rows[0]) {
@@ -253,13 +262,13 @@ router.post("/horarios/gerar-semana", requireAdmin, asyncHandler(async (req, res
 }));
 
 router.delete("/horarios", requireAdmin, asyncHandler(async (req, res) => {
-  const { data, barbeariaId } = req.query;
+  const { data } = req.query;
 
   if (!data) {
     return res.status(400).json({ error: "Parametro data e obrigatorio" });
   }
 
-  const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const currentBarbershop = getRequestBarbershopId(req);
   const activeAppointments = await query(
     `
       SELECT COUNT(*)::int AS total
@@ -300,6 +309,7 @@ router.put("/horarios/:id/disponibilidade", requireAdmin, asyncHandler(async (re
   }
 
   const { id } = req.params;
+  const currentBarbershop = getRequestBarbershopId(req);
   await deactivateExpiredOpenSlots();
 
   if (parsed.data.disponivel) {
@@ -308,9 +318,10 @@ router.put("/horarios/:id/disponibilidade", requireAdmin, asyncHandler(async (re
         SELECT id, data, hora
         FROM horarios
         WHERE id = $1
+          AND barbearia_id = $2
         LIMIT 1
       `,
-      [id]
+      [id, currentBarbershop]
     );
 
     if (!horarioResult.rows.length) {
@@ -333,9 +344,10 @@ router.put("/horarios/:id/disponibilidade", requireAdmin, asyncHandler(async (re
       UPDATE horarios
       SET disponivel = $1
       WHERE id = $2
+        AND barbearia_id = $3
       RETURNING *
     `,
-    [parsed.data.disponivel, id]
+    [parsed.data.disponivel, id, currentBarbershop]
   );
 
   if (!result.rows.length) {

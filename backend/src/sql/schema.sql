@@ -3,6 +3,32 @@ CREATE TABLE IF NOT EXISTS barbearias (
   nome TEXT NOT NULL
 );
 
+ALTER TABLE barbearias
+  ADD COLUMN IF NOT EXISTS slug TEXT,
+  ADD COLUMN IF NOT EXISTS responsavel_nome TEXT,
+  ADD COLUMN IF NOT EXISTS email_contato TEXT,
+  ADD COLUMN IF NOT EXISTS tipo_cadastro TEXT NOT NULL DEFAULT 'barbearia',
+  ADD COLUMN IF NOT EXISTS plano_nome TEXT NOT NULL DEFAULT 'Plano SaaS Mensal',
+  ADD COLUMN IF NOT EXISTS valor_mensal NUMERIC(10,2) NOT NULL DEFAULT 99.90,
+  ADD COLUMN IF NOT EXISTS status_assinatura TEXT NOT NULL DEFAULT 'ativa',
+  ADD COLUMN IF NOT EXISTS criado_em TIMESTAMP NOT NULL DEFAULT NOW();
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_barbearias_slug_unique ON barbearias(slug);
+
+CREATE TABLE IF NOT EXISTS usuarios_painel (
+  id TEXT PRIMARY KEY,
+  barbearia_id TEXT NOT NULL REFERENCES barbearias(id) ON DELETE CASCADE,
+  nome TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  senha_hash TEXT NOT NULL,
+  cargo TEXT NOT NULL DEFAULT 'owner',
+  tipo_conta TEXT NOT NULL DEFAULT 'barbearia',
+  ativo BOOLEAN NOT NULL DEFAULT true,
+  ultimo_login_em TIMESTAMP,
+  criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+  atualizado_em TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS servicos (
   id SERIAL PRIMARY KEY,
   barbearia_id TEXT NOT NULL REFERENCES barbearias(id),
@@ -76,11 +102,24 @@ CREATE TABLE IF NOT EXISTS pagamentos_atendimento (
   cliente_telefone TEXT NOT NULL,
   servico TEXT NOT NULL,
   valor NUMERIC(10,2) NOT NULL,
-  data_pagamento DATE NOT NULL DEFAULT CURRENT_DATE,
-  status TEXT NOT NULL DEFAULT 'pago',
-  metodo TEXT NOT NULL DEFAULT 'presencial',
+  data_pagamento DATE DEFAULT CURRENT_DATE,
+  status TEXT NOT NULL DEFAULT 'pendente',
+  metodo TEXT NOT NULL DEFAULT 'nao_informado',
   criado_em TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS pagamentos_atendimento
+  ALTER COLUMN data_pagamento DROP NOT NULL;
+
+ALTER TABLE IF EXISTS pagamentos_atendimento
+  ALTER COLUMN status SET DEFAULT 'pendente';
+
+ALTER TABLE IF EXISTS pagamentos_atendimento
+  ALTER COLUMN metodo SET DEFAULT 'nao_informado';
+
+UPDATE pagamentos_atendimento
+SET metodo = 'nao_informado'
+WHERE metodo IS NULL OR metodo = '';
 
 CREATE TABLE IF NOT EXISTS consumos_assinatura (
   id SERIAL PRIMARY KEY,
@@ -112,6 +151,8 @@ CREATE TABLE IF NOT EXISTS lembretes (
 
 CREATE INDEX IF NOT EXISTS idx_horarios_data ON horarios(data);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_data ON agendamentos(data);
+CREATE INDEX IF NOT EXISTS idx_usuarios_painel_barbearia_id ON usuarios_painel(barbearia_id);
+CREATE INDEX IF NOT EXISTS idx_usuarios_painel_email_lower ON usuarios_painel(LOWER(email));
 CREATE INDEX IF NOT EXISTS idx_servicos_barbearia_id ON servicos(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_horarios_barbearia_id ON horarios(barbearia_id);
 CREATE INDEX IF NOT EXISTS idx_agendamentos_barbearia_id ON agendamentos(barbearia_id);
@@ -131,6 +172,7 @@ CREATE INDEX IF NOT EXISTS idx_lembretes_pendentes ON lembretes(status, agendado
 CREATE INDEX IF NOT EXISTS idx_lembretes_barbearia_id ON lembretes(barbearia_id);
 
 ALTER TABLE barbearias ENABLE ROW LEVEL SECURITY;
+ALTER TABLE usuarios_painel ENABLE ROW LEVEL SECURITY;
 ALTER TABLE servicos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE horarios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE agendamentos ENABLE ROW LEVEL SECURITY;
@@ -144,6 +186,15 @@ ALTER TABLE lembretes ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS deny_client_access_on_barbearias ON barbearias;
 CREATE POLICY deny_client_access_on_barbearias
   ON barbearias
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
+
+DROP POLICY IF EXISTS deny_client_access_on_servicos ON servicos;
+DROP POLICY IF EXISTS deny_client_access_on_usuarios_painel ON usuarios_painel;
+CREATE POLICY deny_client_access_on_usuarios_painel
+  ON usuarios_painel
   FOR ALL
   TO anon, authenticated
   USING (false)

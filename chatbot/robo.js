@@ -18,6 +18,8 @@ let qrAtualizadoEm = null;
 let botConectado = false;
 let chatbotInicializado = false;
 let chatbotInitializationPromise = null;
+let chatbotStage = "idle";
+let chatbotLastError = null;
 
 const sessions = new Map();
 const antiSpam = new Map();
@@ -129,7 +131,9 @@ const getStatusPayload = () => ({
   status: ultimoQr ? "qr_disponivel" : botConectado ? "conectado" : "aguardando_qr",
   qrPagePath: "/qr",
   qrImagePath: "/qr.png",
-  updatedAt: qrAtualizadoEm
+  updatedAt: qrAtualizadoEm,
+  stage: chatbotStage,
+  lastError: chatbotLastError
 });
 
 const renderQrPage = () => {
@@ -687,14 +691,35 @@ async function atualizarQrImagem(qr) {
 
 function attachClientEvents() {
   client.on("qr", (qr) => {
+    chatbotStage = "qr_recebido";
+    chatbotLastError = null;
     console.log("Escaneie o QR Code:");
     qrcode.generate(qr, { small: false });
   });
 
   client.on("qr", atualizarQrImagem);
 
+  client.on("loading_screen", (percent, message) => {
+    chatbotStage = "carregando_whatsapp";
+    console.log(`WhatsApp carregando: ${percent}% - ${message}`);
+  });
+
+  client.on("authenticated", () => {
+    chatbotStage = "autenticado";
+    chatbotLastError = null;
+    console.log("Sessao autenticada com sucesso.");
+  });
+
+  client.on("auth_failure", (message) => {
+    chatbotStage = "falha_autenticacao";
+    chatbotLastError = message || "Falha de autenticacao desconhecida.";
+    console.log("Falha de autenticacao no WhatsApp:", message);
+  });
+
   client.on("ready", () => {
     botConectado = true;
+    chatbotStage = "conectado";
+    chatbotLastError = null;
     ultimoQr = null;
     qrDataUrl = null;
     qrPngBuffer = null;
@@ -704,6 +729,8 @@ function attachClientEvents() {
 
   client.on("disconnected", (reason) => {
     botConectado = false;
+    chatbotStage = "desconectado";
+    chatbotLastError = reason || null;
     ultimoQr = null;
     qrDataUrl = null;
     qrPngBuffer = null;
@@ -727,9 +754,14 @@ function initializeChatbot() {
   }
 
   chatbotInicializado = true;
+  chatbotStage = "inicializando";
+  chatbotLastError = null;
+  console.log("Inicializando cliente do WhatsApp...");
   chatbotInitializationPromise = client.initialize().catch((erro) => {
     chatbotInicializado = false;
     chatbotInitializationPromise = null;
+    chatbotStage = "erro_inicializacao";
+    chatbotLastError = erro?.message || String(erro);
     throw erro;
   });
 

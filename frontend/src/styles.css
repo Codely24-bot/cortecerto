@@ -14,9 +14,9 @@
   --gold: #d7a43d;
   --gold-strong: #f2c86b;
   --gold-shadow: rgba(215, 164, 61, 0.25);
-  --text: #f6f0e6;
-  --text-soft: rgba(246, 240, 230, 0.68);
-  --text-faint: rgba(246, 240, 230, 0.48);
+  --text: #ffffff;
+  --text-soft: #ffffff;
+  --text-faint: #ffffff;
   --success: #58d386;
   --danger: #ff7d62;
 }
@@ -130,7 +130,7 @@ body::after {
 }
 
 .section-kicker {
-  color: var(--gold);
+  color: var(--text);
   letter-spacing: 0.34em;
   text-transform: uppercase;
   font-size: 0.72rem;
@@ -159,7 +159,7 @@ body::after {
 }
 
 .field-dark::placeholder {
-  color: rgba(246, 240, 230, 0.38);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .field-dark:focus {
@@ -187,7 +187,7 @@ body::after {
 
 .btn-gold {
   background: linear-gradient(135deg, #b67f22 0%, #d7a43d 48%, #f2c86b 100%);
-  color: #120d04;
+  color: #ffffff;
   box-shadow: 0 16px 36px var(--gold-shadow);
 }
 
@@ -204,7 +204,7 @@ body::after {
 
 .btn-ghost:hover {
   border-color: rgba(242, 200, 107, 0.36);
-  color: #fff8eb;
+  color: #ffffff;
 }
 
 .btn-dark {
@@ -220,13 +220,13 @@ body::after {
 .btn-danger {
   border: 1px solid rgba(255, 125, 98, 0.32);
   background: rgba(255, 125, 98, 0.12);
-  color: #ffd2c7;
+  color: #ffffff;
 }
 
 .btn-success {
   border: 1px solid rgba(88, 211, 134, 0.28);
   background: rgba(88, 211, 134, 0.12);
-  color: #baf5cf;
+  color: #ffffff;
 }
 
 .btn-gold:disabled,
@@ -272,7 +272,7 @@ body::after {
 .hamburger-icon {
   width: 1.35rem;
   height: 1.35rem;
-  stroke: #f2c86b;
+  stroke: #ffffff;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -283,10 +283,26 @@ body::after {
   inset: 0;
   z-index: 40;
   pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 280ms ease,
+    visibility 0ms linear 280ms;
+}
+
+.mobile-drawer-shell.is-mounted,
+.mobile-drawer-shell.is-open {
+  pointer-events: auto;
+  visibility: visible;
+  transition-delay: 0ms;
+}
+
+.mobile-drawer-shell.is-mounted {
+  opacity: 1;
 }
 
 .mobile-drawer-shell.is-open {
-  pointer-events: auto;
+  opacity: 1;
 }
 
 .mobile-drawer-backdrop {
@@ -296,7 +312,9 @@ body::after {
   background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(8px);
   opacity: 0;
-  transition: opacity 220ms ease;
+  transition:
+    opacity 280ms ease,
+    backdrop-filter 280ms ease;
 }
 
 .mobile-drawer-panel {
@@ -304,8 +322,11 @@ body::after {
   inset: 0 auto 0 0;
   width: min(88vw, 340px);
   padding: 1rem;
-  transform: translateX(calc(-100% - 1.5rem));
-  transition: transform 240ms ease;
+  opacity: 0;
+  transform: translateX(calc(-100% - 1.75rem)) scale(0.985);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 240ms ease;
 }
 
 .mobile-drawer-shell.is-open .mobile-drawer-backdrop {
@@ -313,6 +334,7 @@ body::after {
 }
 
 .mobile-drawer-shell.is-open .mobile-drawer-panel {
+  opacity: 1;
   transform: translateX(0);
 }
 
@@ -342,7 +364,7 @@ body::after {
 }
 
 .data-table thead tr {
-  color: var(--text-faint);
+  color: #ffffff;
 }
 
 .data-table th {
@@ -360,6 +382,36 @@ body::after {
   vertical-align: top;
 }
 
+.data-table th,
+.data-table td,
+label,
+input,
+select,
+textarea,
+button {
+  color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+select option {
+  color: #ffffff;
+  background: #101010;
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit {
+  color: #ffffff;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.1);
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;
@@ -373,23 +425,23 @@ body::after {
 .status-pill--pago,
 .status-pill--ativo {
   background: rgba(215, 164, 61, 0.16);
-  color: #f2c86b;
+  color: #ffffff;
 }
 
 .status-pill--concluido {
   background: rgba(88, 211, 134, 0.16);
-  color: #8df0b0;
+  color: #ffffff;
 }
 
 .status-pill--cancelado,
 .status-pill--atrasado {
   background: rgba(255, 125, 98, 0.14);
-  color: #ffb4a4;
+  color: #ffffff;
 }
 
 .status-pill--pendente {
   background: rgba(255, 255, 255, 0.08);
-  color: rgba(246, 240, 230, 0.9);
+  color: #ffffff;
 }
 
 .alert-error,
@@ -402,13 +454,13 @@ body::after {
 .alert-error {
   border: 1px solid rgba(255, 125, 98, 0.24);
   background: rgba(255, 125, 98, 0.09);
-  color: #ffc4b7;
+  color: #ffffff;
 }
 
 .alert-success {
   border: 1px solid rgba(88, 211, 134, 0.2);
   background: rgba(88, 211, 134, 0.09);
-  color: #c7f8d6;
+  color: #ffffff;
 }
 
 .bar-track {

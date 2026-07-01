@@ -40,12 +40,14 @@ Arquivos de exemplo para deploy:
 - `DATABASE_POOL_MAX`: `10`
 - `DATABASE_CONNECTION_TIMEOUT_MS`: `15000`
 - `DATABASE_IDLE_TIMEOUT_MS`: `30000`
-- `ADMIN_USER`: usuario do painel
-- `ADMIN_PASS`: senha do painel
+- `AUTH_TOKEN_SECRET`: segredo forte usado para assinar as sessoes de login
+- `AUTH_TOKEN_TTL_DAYS`: duracao da sessao do painel, ex. `30`
+- `SERVICE_AUTH_TOKEN`: token tecnico para chatbot/integracoes
 - `BARBEARIA_ID`: identificador da barbearia, ex. `default`
 - `BARBEARIA_NOME`: nome exibido no sistema
 - `API_URL`: URL publica da aplicacao, ex. `https://seu-app.railway.app`
 - `CHATBOT_WEBHOOK_URL`: opcional, URL do webhook do chatbot
+- `CHATBOT_PUBLIC_URL`: opcional, URL publica do servico do chatbot para redirecionar `/qr`
 - `CHATBOT_ENABLED`: `false` por padrao no Railway
 
 ### Observacoes de deploy
@@ -63,8 +65,13 @@ Arquivos de exemplo para deploy:
 
 - Tecnologias: Node.js + Express + PostgreSQL
 - Compativel com Supabase Postgres via `DATABASE_URL`
+- Autenticacao SaaS com cadastro por e-mail/senha salvo no banco
+- Multi-tenant por `barbearia_id` nas rotas administrativas
 - Endpoints principais:
   - `GET /health`
+  - `POST /auth/register`
+  - `POST /auth/login`
+  - `GET /auth/me`
   - `GET /horarios-disponiveis?data=YYYY-MM-DD`
   - `POST /agendar`
   - `GET /agendamentos`
@@ -83,6 +90,9 @@ Para usar com Supabase localmente:
 Schema do banco:
 
 - `backend/src/sql/schema.sql`
+- Tabelas de SaaS adicionadas:
+  - `barbearias` com slug, plano e status da assinatura
+  - `usuarios_painel` com e-mail unico e hash de senha
 
 ## Frontend
 
@@ -107,7 +117,8 @@ Ele conversa com a API para buscar horarios e criar agendamentos.
 3. No servico do chatbot, use `npm run chatbot:start` como start command.
 4. Configure as variaveis com base em `.env.railway.chatbot.example`.
 5. Aponte `API_URL` para a URL publica do servico principal.
-6. Abra `/qr` na URL do servico do chatbot para autenticar o WhatsApp.
+6. Defina `CHATBOT_PUBLIC_URL` no app principal com a URL base do servico do chatbot.
+7. Abra `/qr` na URL do servico do chatbot, ou `/api/qr` no app principal, para autenticar o WhatsApp.
 
 Variaveis recomendadas para o servico do chatbot:
 
@@ -115,7 +126,7 @@ Variaveis recomendadas para o servico do chatbot:
 - `API_URL=https://seu-app-principal.up.railway.app`
 - `BARBEARIA_ID=mestre-da-navalha`
 - `BARBEARIA_NOME=MESTRE DA NAVALHA`
-- `ADMIN_PASS=sua-senha-admin`
+- `ADMIN_PASS=mesmo-valor-do-SERVICE_AUTH_TOKEN`
 
 Rotas uteis do servico do chatbot:
 

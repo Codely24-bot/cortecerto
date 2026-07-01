@@ -1,10 +1,9 @@
 import express from "express";
 import { z } from "zod";
-import { requireAdmin } from "../middleware/auth.js";
 import { query } from "../db.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ensureDefaultServices } from "../services/serviceCatalog.js";
-import { DEFAULT_BARBERSHOP_ID } from "../config.js";
+import { getRequestBarbershopId, requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -16,8 +15,7 @@ const serviceSchema = z.object({
 });
 
 router.get("/servicos", requireAdmin, asyncHandler(async (req, res) => {
-  const { barbeariaId } = req.query;
-  const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const currentBarbershop = getRequestBarbershopId(req);
 
   await ensureDefaultServices(currentBarbershop);
 
@@ -44,8 +42,8 @@ router.post("/servicos", requireAdmin, asyncHandler(async (req, res) => {
     });
   }
 
-  const { barbeariaId, nome, duracao, preco } = parsed.data;
-  const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const { nome, duracao, preco } = parsed.data;
+  const currentBarbershop = getRequestBarbershopId(req);
 
   const existing = await query(
     `
@@ -85,8 +83,8 @@ router.put("/servicos/:id", requireAdmin, asyncHandler(async (req, res) => {
     });
   }
 
-  const { barbeariaId, nome, duracao, preco } = parsed.data;
-  const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const { nome, duracao, preco } = parsed.data;
+  const currentBarbershop = getRequestBarbershopId(req);
   const currentService = await query(
     `
       SELECT id, nome
@@ -148,8 +146,7 @@ router.put("/servicos/:id", requireAdmin, asyncHandler(async (req, res) => {
 
 router.delete("/servicos/:id", requireAdmin, asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const { barbeariaId } = req.query;
-  const currentBarbershop = barbeariaId || DEFAULT_BARBERSHOP_ID;
+  const currentBarbershop = getRequestBarbershopId(req);
 
   const serviceResult = await query(
     `

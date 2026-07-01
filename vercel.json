@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "npm install --workspaces --include-workspace-root --workspace backend --workspace frontend --include=optional",
-  "buildCommand": "npm install --workspace frontend --include=optional --no-save && npm run build --workspace frontend",
+  "installCommand": "npm install --workspaces --include-workspace-root --workspace backend",
+  "buildCommand": "cd frontend && rm -f .env .env.local package-lock.json && npm install && npm install --no-save @rollup/rollup-linux-x64-gnu && npm run build",
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/[...route].js": {
@@ -15,8 +15,8 @@
   },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "source": "/api/:route*",
+      "destination": "/api/[...route]"
     },
     {
       "source": "/health",
@@ -24,6 +24,10 @@
     },
     {
       "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/financeiro",
       "destination": "/index.html"
     },
     {

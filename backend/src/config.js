@@ -8,8 +8,8 @@ export const DEFAULT_BARBERSHOP_NAME =
 export const BARBERSHOP_TIMEZONE =
   process.env.BARBEARIA_TIMEZONE || "America/Sao_Paulo";
 
-const DEFAULT_ADMIN_USERNAME = "admin";
-const DEFAULT_ADMIN_PASSWORD = "admin123";
+const DEFAULT_AUTH_TOKEN_SECRET = "dev-auth-secret-change-me";
+const DEFAULT_AUTH_TOKEN_TTL_DAYS = 30;
 const DATABASE_PLACEHOLDERS = ["PROJECT_REF", "REGION", "SENHA_REAL", "SUA_SENHA"];
 const RAILWAY_ENV_KEYS = [
   "RAILWAY_ENVIRONMENT",
@@ -19,11 +19,17 @@ const RAILWAY_ENV_KEYS = [
   "RAILWAY_STATIC_URL"
 ];
 
-export function getAdminCredentials() {
-  return {
-    username: process.env.ADMIN_USER || DEFAULT_ADMIN_USERNAME,
-    password: process.env.ADMIN_PASS || DEFAULT_ADMIN_PASSWORD
-  };
+export function getAuthTokenSecret() {
+  return process.env.AUTH_TOKEN_SECRET || process.env.ADMIN_PASS || DEFAULT_AUTH_TOKEN_SECRET;
+}
+
+export function getServiceAdminToken() {
+  return (process.env.SERVICE_AUTH_TOKEN || process.env.ADMIN_PASS || "").trim();
+}
+
+export function getAuthTokenTtlDays() {
+  const parsed = Number(process.env.AUTH_TOKEN_TTL_DAYS || DEFAULT_AUTH_TOKEN_TTL_DAYS);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_AUTH_TOKEN_TTL_DAYS;
 }
 
 export function getPublicApiUrl() {
@@ -36,6 +42,10 @@ export function getDatabaseUrl() {
 
 export function getChatbotEnabled() {
   return process.env.CHATBOT_ENABLED === "true";
+}
+
+export function getChatbotPublicUrl() {
+  return (process.env.CHATBOT_PUBLIC_URL || "").trim().replace(/\/+$/, "");
 }
 
 export function isRailwayRuntime() {
@@ -57,6 +67,7 @@ export function getRuntimeSummary() {
     apiUrl: getPublicApiUrl(),
     databaseHost,
     chatbotEnabled: getChatbotEnabled(),
+    chatbotPublicUrl: getChatbotPublicUrl(),
     hasDatabaseUrl: Boolean(databaseUrl)
   };
 }
@@ -66,8 +77,8 @@ export function validateRuntimeConfig() {
   const warnings = [];
   const databaseUrl = getDatabaseUrl();
   const apiUrl = getPublicApiUrl();
-  const admin = getAdminCredentials();
   const railwayRuntime = isRailwayRuntime();
+  const authTokenSecret = getAuthTokenSecret();
 
   if (!databaseUrl) {
     errors.push("DATABASE_URL nao configurada.");
@@ -113,8 +124,10 @@ export function validateRuntimeConfig() {
     errors.push("API_URL deve comecar com http:// ou https://");
   }
 
-  if (admin.password === DEFAULT_ADMIN_PASSWORD) {
-    warnings.push("ADMIN_PASS esta com a senha padrao admin123. Troque antes de publicar.");
+  if (authTokenSecret === DEFAULT_AUTH_TOKEN_SECRET) {
+    warnings.push(
+      "AUTH_TOKEN_SECRET nao configurado. Defina um segredo forte antes de publicar o SaaS."
+    );
   }
 
   return {
