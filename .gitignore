@@ -5,6 +5,8 @@ dist
 .DS_Store
 .wwebjs_auth
 .wwebjs_cache
+.wwebjs_auth_backup_*/
+.wwebjs_cache_backup_*/
 *.log
 
 .vercel
