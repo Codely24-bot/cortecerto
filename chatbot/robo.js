@@ -6,7 +6,7 @@ const { Client, LocalAuth } = require("whatsapp-web.js");
 
 const getApiUrl = () => process.env.API_URL || "http://localhost:4000";
 const getBarbeariaId = () => process.env.BARBEARIA_ID || "default";
-const getBarbeariaNome = () => process.env.BARBEARIA_NOME || "MESTRE DA NAVALHA";
+const getBarbeariaNome = () => process.env.BARBEARIA_NOME || "CORTE CERTO";
 const getAdminPass = () => process.env.ADMIN_PASS || "";
 const PORT = Number(process.env.PORT) || 3000;
 const PAUSA_PROPRIETARIO_MS = 5 * 60 * 1000;

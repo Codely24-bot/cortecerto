@@ -1,7 +1,7 @@
 {
-  "name": "mestre-da-navalha-backend",
+  "name": "corte-certo-backend",
   "version": "1.0.0",
-  "description": "Backend do MESTRE DA NAVALHA, web app para barbearias",
+  "description": "Backend do CORTE CERTO, web app para barbearias",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

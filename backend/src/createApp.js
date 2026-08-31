@@ -11,6 +11,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import servicosRoutes from "./routes/servicos.js";
 import assinaturasRoutes from "./routes/assinaturas.js";
 import financeiroRoutes from "./routes/financeiro.js";
+import clientesRoutes from "./routes/clientes.js";
 import { checkDatabaseConnection, getDatabaseStatus } from "./db.js";
 import { getChatbotPublicUrl } from "./config.js";
 
@@ -156,6 +157,7 @@ export async function createApp({
   app.use(servicosRoutes);
   app.use(assinaturasRoutes);
   app.use(financeiroRoutes);
+  app.use(clientesRoutes);
 
   if (enableChatbot) {
     try {

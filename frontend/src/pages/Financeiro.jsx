@@ -188,7 +188,7 @@ export default function Financeiro() {
         {summary.map((card) => (
           <div key={card.label} className="app-panel metric-card rounded-[1.8rem] p-5">
             <p className="section-kicker">{card.label}</p>
-            <h3 className="mt-4 font-display text-2xl font-semibold text-white">
+            <h3 className="mt-4 font-display text-2xl font-semibold text-ink">
               {card.value}
             </h3>
           </div>
@@ -198,7 +198,7 @@ export default function Financeiro() {
       <div className="app-panel rounded-[2rem] p-6 md:p-8">
         <div className="flex flex-col gap-6">
           <div>
-            <h3 className="font-display text-xl text-white">Filtros financeiros</h3>
+            <h3 className="font-display text-xl text-ink">Filtros financeiros</h3>
             <p className="mt-2 text-sm text-soft">
               Refine por periodo, status do pagamento e forma usada no caixa.
             </p>
@@ -261,7 +261,7 @@ export default function Financeiro() {
       <div className="app-panel rounded-[2rem] p-6 md:p-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h3 className="font-display text-xl text-white">Controle dos agendamentos</h3>
+            <h3 className="font-display text-xl text-ink">Controle dos agendamentos</h3>
             <p className="mt-2 text-sm text-soft">
               Todos os clientes agendados com status do atendimento, pagamento e forma de recebimento.
             </p>

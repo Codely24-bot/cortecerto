@@ -3,18 +3,26 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        display: ["\"Sora\"", "sans-serif"],
-        body: ["\"Manrope\"", "sans-serif"]
+        display: ["\"Poppins\"", "sans-serif"],
+        body: ["\"Inter\"", "sans-serif"]
       },
       colors: {
-        ink: "#0E0F12",
-        cream: "#F6F2EA",
-        ocean: "#0E2A36",
-        accent: "#C6A15B",
-        mint: "#A7C7B7"
+        navy: "#071A33",
+        navySoft: "#0B2447",
+        navyLight: "#0E2E5C",
+        primary: "#1155CC",
+        primaryLight: "#3B82F6",
+        danger: "#E71D2B",
+        gold: "#F2B84B",
+        muted: "#8494AD"
       },
       boxShadow: {
-        soft: "0 20px 60px rgba(14,15,18,0.15)"
+        card: "0 20px 50px rgba(0,0,0,0.35)",
+        glow: "0 0 0 4px rgba(17,85,204,0.18)",
+        glowRed: "0 0 0 4px rgba(231,29,43,0.15)"
+      },
+      borderRadius: {
+        "4xl": "2rem"
       }
     }
   },

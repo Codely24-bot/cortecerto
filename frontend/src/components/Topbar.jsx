@@ -4,7 +4,7 @@ export default function Topbar({ title, subtitle, description }) {
       <p className="section-kicker">{subtitle}</p>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h2 className="font-display text-3xl font-semibold tracking-tight text-white md:text-4xl">
+          <h2 className="font-display text-3xl font-semibold tracking-tight text-ink md:text-4xl">
             {title}
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-soft">

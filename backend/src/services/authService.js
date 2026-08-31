@@ -6,7 +6,10 @@ import {
   DEFAULT_BARBERSHOP_NAME,
   getAuthTokenSecret,
   getAuthTokenTtlDays,
-  getServiceAdminToken
+  getMasterAdminEmail,
+  getMasterAdminPassword,
+  getServiceAdminToken,
+  isMasterAdminEnabled
 } from "../config.js";
 import { getDefaultServices } from "./serviceCatalog.js";
 
@@ -99,7 +102,7 @@ export function parseSignedAuthToken(token) {
   try {
     const payload = JSON.parse(base64UrlDecode(body));
 
-    if (!payload?.sub || payload?.kind !== "panel-session") {
+    if (!payload?.sub || !["panel-session", "master-session"].includes(payload.kind)) {
       return null;
     }
 
@@ -194,6 +197,37 @@ export function buildSessionPayload(userId) {
   };
 }
 
+export function buildMasterSessionPayload() {
+  return {
+    kind: "master-session",
+    sub: "master",
+    exp: Date.now() + getAuthTokenTtlDays() * 24 * 60 * 60 * 1000
+  };
+}
+
+export function checkMasterAdminCredentials(email, senha) {
+  if (!isMasterAdminEnabled()) {
+    return false;
+  }
+
+  if (!email || !senha) {
+    return false;
+  }
+
+  const normalizedEmail = normalizeEmail(email);
+  const masterEmail = getMasterAdminEmail();
+  const masterPassword = getMasterAdminPassword();
+
+  const emailMatches = !masterEmail || normalizedEmail === masterEmail;
+  const passwordMatches =
+    typeof senha === "string" &&
+    typeof masterPassword === "string" &&
+    senha.length === masterPassword.length &&
+    crypto.timingSafeEqual(Buffer.from(senha), Buffer.from(masterPassword));
+
+  return emailMatches && passwordMatches;
+}
+
 export async function findPanelUserByEmail(email) {
   const normalizedEmail = normalizeEmail(email);
   const result = await query(
@@ -279,6 +313,32 @@ export async function resolveAuthContext(token) {
 
   if (!payload) {
     return null;
+  }
+
+  if (payload.kind === "master-session") {
+    if (!isMasterAdminEnabled()) {
+      return null;
+    }
+
+    return {
+      type: "master",
+      userId: "master",
+      email: getMasterAdminEmail(),
+      nome: "Administrador local",
+      cargo: "owner",
+      tipoConta: "barbearia",
+      barbeariaId: DEFAULT_BARBERSHOP_ID,
+      barbeariaNome: DEFAULT_BARBERSHOP_NAME,
+      barbeariaSlug: DEFAULT_BARBERSHOP_ID,
+      barbearia: {
+        id: DEFAULT_BARBERSHOP_ID,
+        nome: DEFAULT_BARBERSHOP_NAME,
+        slug: DEFAULT_BARBERSHOP_ID,
+        planoNome: "Plano SaaS Mensal",
+        valorMensal: 99.9,
+        statusAssinatura: "ativa"
+      }
+    };
   }
 
   const user = await findPanelUserById(payload.sub);

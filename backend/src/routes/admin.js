@@ -5,8 +5,10 @@ import { pool } from "../db.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
+  buildMasterSessionPayload,
   buildSessionPayload,
   buildSignedAuthToken,
+  checkMasterAdminCredentials,
   findPanelUserByEmail,
   generateUniqueBarbershopSlug,
   hashPassword,
@@ -15,6 +17,7 @@ import {
   toPanelUserPayload,
   verifyPassword
 } from "../services/authService.js";
+import { getMasterAdminEmail } from "../config.js";
 
 const router = express.Router();
 
@@ -155,31 +158,51 @@ router.post("/auth/login", asyncHandler(async (req, res) => {
 
   const user = await findPanelUserByEmail(parsed.data.email);
 
-  if (!user?.ativo) {
-    return res.status(401).json({ error: "Credenciais invalidas" });
+  if (user?.ativo) {
+    const passwordMatches = await verifyPassword(parsed.data.senha, user.senha_hash);
+
+    if (passwordMatches) {
+      await pool.query(
+        `
+          UPDATE usuarios_painel
+          SET ultimo_login_em = NOW(),
+              atualizado_em = NOW()
+          WHERE id = $1
+        `,
+        [user.id]
+      );
+
+      const token = buildSignedAuthToken(buildSessionPayload(user.id));
+      return res.json({
+        token,
+        user: toPanelUserPayload(user)
+      });
+    }
   }
 
-  const passwordMatches = await verifyPassword(parsed.data.senha, user.senha_hash);
-
-  if (!passwordMatches) {
-    return res.status(401).json({ error: "Credenciais invalidas" });
+  if (checkMasterAdminCredentials(parsed.data.email, parsed.data.senha)) {
+    const token = buildSignedAuthToken(buildMasterSessionPayload());
+    return res.json({
+      token,
+      user: {
+        id: "master",
+        nome: "Administrador local",
+        email: getMasterAdminEmail(),
+        cargo: "owner",
+        tipoConta: "barbearia",
+        barbearia: {
+          id: "local",
+          nome: "CORTE CERTO",
+          slug: "corte-certo",
+          planoNome: "Plano SaaS Mensal",
+          valorMensal: 99.9,
+          statusAssinatura: "ativa"
+        }
+      }
+    });
   }
 
-  await pool.query(
-    `
-      UPDATE usuarios_painel
-      SET ultimo_login_em = NOW(),
-          atualizado_em = NOW()
-      WHERE id = $1
-    `,
-    [user.id]
-  );
-
-  const token = buildSignedAuthToken(buildSessionPayload(user.id));
-  return res.json({
-    token,
-    user: toPanelUserPayload(user)
-  });
+  return res.status(401).json({ error: "Credenciais invalidas" });
 }));
 
 router.get("/auth/me", requireAdmin, (req, res) => {

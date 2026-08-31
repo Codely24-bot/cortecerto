@@ -132,7 +132,7 @@ export default function Servicos() {
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.9fr]">
         <div className="app-panel rounded-[2rem] p-6 md:p-8">
           <div>
-            <h3 className="font-display text-xl text-white">Servicos cadastrados</h3>
+            <h3 className="font-display text-xl text-ink">Servicos cadastrados</h3>
             <p className="mt-2 text-sm text-soft">
               O faturamento estimado do dashboard usa os valores definidos aqui.
             </p>
@@ -187,7 +187,7 @@ export default function Servicos() {
         </div>
 
         <div className="app-panel rounded-[2rem] p-6 md:p-8">
-          <h3 className="font-display text-xl text-white">
+          <h3 className="font-display text-xl text-ink">
             {editingId ? "Editar servico" : "Novo servico"}
           </h3>
 

@@ -4,7 +4,7 @@ dotenv.config();
 
 export const DEFAULT_BARBERSHOP_ID = process.env.BARBEARIA_ID || "default";
 export const DEFAULT_BARBERSHOP_NAME =
-  process.env.BARBEARIA_NOME || "MESTRE DA NAVALHA";
+  process.env.BARBEARIA_NOME || "CORTE CERTO";
 export const BARBERSHOP_TIMEZONE =
   process.env.BARBEARIA_TIMEZONE || "America/Sao_Paulo";
 
@@ -27,6 +27,18 @@ export function getServiceAdminToken() {
   return (process.env.SERVICE_AUTH_TOKEN || process.env.ADMIN_PASS || "").trim();
 }
 
+export function getMasterAdminEmail() {
+  return (process.env.ADMIN_EMAIL || "admin@cortecerto.local").trim().toLowerCase();
+}
+
+export function getMasterAdminPassword() {
+  return (process.env.ADMIN_PASS || "").trim();
+}
+
+export function isMasterAdminEnabled() {
+  return Boolean(getMasterAdminPassword());
+}
+
 export function getAuthTokenTtlDays() {
   const parsed = Number(process.env.AUTH_TOKEN_TTL_DAYS || DEFAULT_AUTH_TOKEN_TTL_DAYS);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_AUTH_TOKEN_TTL_DAYS;
@@ -38,6 +50,10 @@ export function getPublicApiUrl() {
 
 export function getDatabaseUrl() {
   return process.env.DATABASE_URL || "";
+}
+
+export function isMockDatabase() {
+  return process.env.MOCK_DB === "true" || !getDatabaseUrl();
 }
 
 export function getChatbotEnabled() {
@@ -79,8 +95,9 @@ export function validateRuntimeConfig() {
   const apiUrl = getPublicApiUrl();
   const railwayRuntime = isRailwayRuntime();
   const authTokenSecret = getAuthTokenSecret();
+  const mockDatabase = isMockDatabase();
 
-  if (!databaseUrl) {
+  if (!databaseUrl && !mockDatabase) {
     errors.push("DATABASE_URL nao configurada.");
   }
 

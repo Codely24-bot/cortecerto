@@ -1,4 +1,4 @@
-# MESTRE DA NAVALHA
+# CORTE CERTO
 
 Web app para barbearias com painel administrativo, backend e integracao com chatbot.
 
@@ -67,6 +67,7 @@ Arquivos de exemplo para deploy:
 - Compativel com Supabase Postgres via `DATABASE_URL`
 - Autenticacao SaaS com cadastro por e-mail/senha salvo no banco
 - Multi-tenant por `barbearia_id` nas rotas administrativas
+- Login de admin local via `ADMIN_PASS` (senha master) independente do banco
 - Endpoints principais:
   - `GET /health`
   - `POST /auth/register`
@@ -79,6 +80,17 @@ Arquivos de exemplo para deploy:
   - `PUT /agendamento/:id`
   - `POST /horarios`
   - `GET /relatorios/resumo`
+
+### Login de admin local (senha master)
+
+Quando `ADMIN_PASS` estiver definido (ex.: `backend/.env`), o painel aceita um login local
+sem precisar de usuario cadastrado no banco. Isso e util no modo `MOCK_DB` ou para acesso
+rapido do proprietario.
+
+- E-mail: `ADMIN_EMAIL` (padrao `admin@cortecerto.local`)
+- Senha: `ADMIN_PASS`
+- O login local emite uma sessao com cargo `owner` isolada na `barbearia_id` da aplicacao.
+- Se o e-mail/senha tambem baterem com um usuario cadastrado no banco, o login do banco tem prioridade.
 
 Para usar com Supabase localmente:
 
@@ -124,8 +136,8 @@ Variaveis recomendadas para o servico do chatbot:
 
 - `PORT=3000`
 - `API_URL=https://seu-app-principal.up.railway.app`
-- `BARBEARIA_ID=mestre-da-navalha`
-- `BARBEARIA_NOME=MESTRE DA NAVALHA`
+- `BARBEARIA_ID=corte-certo`
+- `BARBEARIA_NOME=CORTE CERTO`
 - `ADMIN_PASS=mesmo-valor-do-SERVICE_AUTH_TOKEN`
 
 Rotas uteis do servico do chatbot:

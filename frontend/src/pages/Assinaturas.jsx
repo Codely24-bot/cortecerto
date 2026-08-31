@@ -175,7 +175,7 @@ export default function Assinaturas() {
         {cards.map((card) => (
           <div key={card.label} className="app-panel metric-card rounded-[1.8rem] p-6">
             <p className="section-kicker">{card.label}</p>
-            <h3 className="mt-5 font-display text-3xl font-semibold text-white">
+            <h3 className="mt-5 font-display text-3xl font-semibold text-ink">
               {card.value}
             </h3>
           </div>
@@ -186,7 +186,7 @@ export default function Assinaturas() {
         <div className="app-panel rounded-[2rem] p-6 md:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="font-display text-xl text-white">Mensalistas</h3>
+              <h3 className="font-display text-xl text-ink">Mensalistas</h3>
               <p className="mt-2 text-sm text-soft">
                 Acompanhe cliente, vencimento, status de pagamento e consumo de cortes.
               </p>
@@ -226,7 +226,7 @@ export default function Assinaturas() {
                   {clients.map((client) => (
                     <tr key={client.id}>
                       <td>
-                        <p className="text-white">{client.nome}</p>
+                        <p className="text-ink">{client.nome}</p>
                         <p className="text-xs text-faint">{client.telefone}</p>
                       </td>
                       <td>
@@ -272,10 +272,10 @@ export default function Assinaturas() {
         </div>
 
         <div className="app-panel rounded-[2rem] p-6 md:p-8">
-          <h3 className="font-display text-xl text-white">Novo assinante</h3>
+          <h3 className="font-display text-xl text-ink">Novo assinante</h3>
           <div className="app-panel-muted mt-4 rounded-[1.5rem] px-5 py-4">
             <p className="section-kicker">Plano ativo</p>
-            <p className="mt-3 font-display text-2xl text-white">
+            <p className="mt-3 font-display text-2xl text-ink">
               {plan ? `${plan.nome} - ${formatCurrency(plan.valor)}` : "R$ 159,99"}
             </p>
             <p className="mt-2 text-sm text-soft">

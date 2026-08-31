@@ -33,17 +33,17 @@ export async function deactivateExpiredOpenSlots() {
 
   const result = await query(
     `
-      UPDATE horarios h
+      UPDATE horarios
       SET disponivel = false
-      WHERE h.data = $1::date
-        AND h.disponivel = true
-        AND h.hora < $2
+      WHERE data = $1::date
+        AND disponivel = true
+        AND hora < $2
         AND NOT EXISTS (
           SELECT 1
           FROM agendamentos a
-          WHERE a.data = h.data
-            AND a.hora = h.hora
-            AND a.barbearia_id = h.barbearia_id
+          WHERE a.data = horarios.data
+            AND a.hora = horarios.hora
+            AND a.barbearia_id = horarios.barbearia_id
             AND a.status != 'cancelado'
         )
     `,

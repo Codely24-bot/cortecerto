@@ -1,302 +1,67 @@
-import { useEffect, useMemo, useState } from "react";
-import Topbar from "../components/Topbar.jsx";
-import { apiFetch, resolveChatbotQrUrl } from "../api.js";
+import { useEffect, useState, useCallback } from "react";
+import Layout from "../components/Layout.jsx";
+import ScheduleCalendar from "../components/ScheduleCalendar.jsx";
+import { Plus, Search, Check, X, UserPlus } from "lucide-react";
+import { api, todayIso, isoDaysAgo, isoDaysAhead, formatBRL } from "../api.js";
 
-const CHATBOT_QR_URL = resolveChatbotQrUrl();
-
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function formatDate(date) {
-  return new Date(date).toISOString().slice(0, 10);
-}
-
-function formatDateLabel(date) {
-  const [year, month, day] = String(date).slice(0, 10).split("-");
-  return `${day}/${month}/${year}`;
-}
-
-function getInitialForm(date, serviceName = "Corte") {
-  return {
-    nome: "",
-    telefone: "",
-    data: date,
-    hora: "07:00",
-    servico: serviceName
+function statusPill(status) {
+  const tone = {
+    confirmado: "pill-blue",
+    concluido: "pill-green",
+    cancelado: "pill-red"
   };
-}
-
-function statusBadgeClass(status) {
-  if (status === "cancelado") return "status-pill status-pill--cancelado";
-  if (status === "concluido") return "status-pill status-pill--concluido";
-  return "status-pill status-pill--confirmado";
-}
-
-function AppointmentModal({
-  type,
-  form,
-  onChange,
-  onClose,
-  onSubmit,
-  agendamento,
-  servicos,
-  saving
-}) {
-  if (!type) return null;
-
-  const isView = type === "view";
-  const isEdit = type === "edit";
-  const title = isView
-    ? "Cliente agendado"
-    : isEdit
-      ? "Editar agendamento"
-      : "Novo agendamento";
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/78 p-4 backdrop-blur-md">
-      <div className="app-panel w-full max-w-3xl rounded-[2rem] p-6 md:p-8">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="section-kicker">Agenda</p>
-            <h2 className="mt-3 font-display text-3xl font-semibold text-white">{title}</h2>
-            <p className="mt-3 text-sm text-soft">
-              {isView
-                ? "Consulte os dados do cliente sem sair da agenda."
-                : "Preencha os dados abaixo para salvar o agendamento."}
-            </p>
-          </div>
-          <button
-            className="btn-ghost px-4 py-2"
-            onClick={onClose}
-            type="button"
-          >
-            Fechar
-          </button>
-        </div>
-
-        {isView ? (
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="app-panel-muted rounded-[1.5rem] p-5">
-              <p className="section-kicker">Cliente</p>
-              <h3 className="mt-3 font-display text-2xl font-semibold text-white">{agendamento.nome}</h3>
-              <p className="mt-2 text-sm text-soft">{agendamento.telefone}</p>
-            </div>
-            <div className="app-panel-muted rounded-[1.5rem] p-5">
-              <p className="section-kicker">Servico</p>
-              <h3 className="mt-3 font-display text-2xl font-semibold text-white">{agendamento.servico}</h3>
-              <p className="mt-2 text-sm text-soft">
-                {formatDateLabel(agendamento.data)} as {agendamento.hora}
-              </p>
-            </div>
-            <div className="app-panel-muted rounded-[1.5rem] p-5">
-              <p className="section-kicker">Status</p>
-              <span className={`mt-3 inline-flex ${statusBadgeClass(agendamento.status)}`}>
-                {agendamento.status}
-              </span>
-            </div>
-            <div className="app-panel-muted rounded-[1.5rem] p-5">
-              <p className="section-kicker">Resumo</p>
-              <p className="mt-3 text-sm leading-7 text-soft">
-                Cliente agendado para {formatDateLabel(agendamento.data)} as {agendamento.hora},
-                com servico de {agendamento.servico}.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <form className="mt-8 grid gap-4 md:grid-cols-2" onSubmit={onSubmit}>
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-soft">Nome do cliente</span>
-              <input
-                className="field-dark"
-                name="nome"
-                onChange={onChange}
-                required
-                type="text"
-                value={form.nome}
-              />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-soft">Telefone com DDD</span>
-              <input
-                className="field-dark"
-                name="telefone"
-                onChange={onChange}
-                required
-                type="text"
-                value={form.telefone}
-              />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-soft">Data</span>
-              <input
-                className="field-dark"
-                name="data"
-                onChange={onChange}
-                required
-                type="date"
-                value={form.data}
-              />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-sm font-medium text-soft">Hora</span>
-              <input
-                className="field-dark"
-                name="hora"
-                onChange={onChange}
-                required
-                type="time"
-                value={form.hora}
-              />
-            </label>
-            <label className="flex flex-col gap-2 md:col-span-2">
-              <span className="text-sm font-medium text-soft">Servico</span>
-              <select
-                className="field-dark"
-                name="servico"
-                onChange={onChange}
-                value={form.servico}
-              >
-                {servicos.map((item) => (
-                  <option key={item.id ?? item.nome} value={item.nome}>
-                    {item.nome}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="mt-2 flex flex-wrap gap-3 md:col-span-2">
-              <button
-                className="btn-gold"
-                disabled={saving}
-                type="submit"
-              >
-                {saving ? "Salvando..." : isEdit ? "Salvar alteracoes" : "Criar agendamento"}
-              </button>
-              <button
-                className="btn-ghost"
-                onClick={onClose}
-                type="button"
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        )}
-      </div>
-    </div>
-  );
+  return <span className={`pill ${tone[status] || "pill-slate"}`}>{status}</span>;
 }
 
 export default function Agenda() {
-  const [selectedDate, setSelectedDate] = useState(getToday());
   const [agendamentos, setAgendamentos] = useState([]);
+  const [dias, setDias] = useState([]);
+  const [horarios, setHorarios] = useState([]);
   const [servicos, setServicos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [modalType, setModalType] = useState(null);
-  const [modalAppointment, setModalAppointment] = useState(null);
-  const [form, setForm] = useState(getInitialForm(getToday()));
+  const [modal, setModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [form, setForm] = useState({ nome: "", telefone: "", data: todayIso(), hora: "09:00", servico: "" });
 
-  const defaultServiceName = useMemo(
-    () => servicos[0]?.nome || "Corte",
-    [servicos]
-  );
-
-  async function loadAgendamentos(date = selectedDate) {
+  const load = useCallback(async () => {
     setLoading(true);
     setError("");
-
     try {
-      const response = await apiFetch(
-        `/agendamentos?data=${encodeURIComponent(date)}`
-      );
-      setAgendamentos(response);
-    } catch (err) {
-      setError(err.message);
+      const [ag, ho, sv] = await Promise.all([
+        api.agendamentos(),
+        api.horarios(isoDaysAgo(7), isoDaysAhead(21)),
+        api.servicos()
+      ]);
+      setAgendamentos(ag);
+      setHorarios(ho);
+      setDias(ag);
+      setServicos(sv);
+      setForm((f) => ({ ...f, servico: f.servico || sv[0]?.nome || "" }));
+    } catch (e) {
+      setError(e.message);
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    loadAgendamentos();
-  }, [selectedDate]);
-
-  useEffect(() => {
-    async function loadServicos() {
-      try {
-        const response = await apiFetch("/servicos");
-        setServicos(response);
-      } catch (err) {
-        setError(err.message);
-      }
-    }
-
-    loadServicos();
   }, []);
 
-  function closeModal() {
-    setModalType(null);
-    setModalAppointment(null);
-    setForm(getInitialForm(selectedDate, defaultServiceName));
-  }
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  function openNewAppointmentModal() {
-    setForm(getInitialForm(selectedDate, defaultServiceName));
-    setModalAppointment(null);
-    setModalType("create");
-  }
+  const filtrados = dias.filter((a) =>
+    String(a.nome || "").toLowerCase().includes(search.toLowerCase())
+  );
 
-  function openEditModal(agendamento) {
-    setForm({
-      nome: agendamento.nome,
-      telefone: agendamento.telefone,
-      data: formatDate(agendamento.data),
-      hora: agendamento.hora,
-      servico: agendamento.servico
-    });
-    setModalAppointment(agendamento);
-    setModalType("edit");
-  }
-
-  function openViewModal(agendamento) {
-    setModalAppointment(agendamento);
-    setModalType("view");
-  }
-
-  function handleFormChange(event) {
-    const { name, value } = event.target;
-    setForm((current) => ({ ...current, [name]: value }));
-  }
-
-  async function handleModalSubmit(event) {
-    event.preventDefault();
-    setError("");
-    setSuccess("");
+  async function submit(e) {
+    e.preventDefault();
     setSaving(true);
-
+    setError("");
     try {
-      if (modalType === "create") {
-        await apiFetch("/agendar", {
-          method: "POST",
-          body: JSON.stringify(form)
-        });
-        setSuccess(`Agendamento criado para ${formatDateLabel(form.data)} as ${form.hora}.`);
-      }
-
-      if (modalType === "edit" && modalAppointment) {
-        await apiFetch(`/agendamento/${modalAppointment.id}`, {
-          method: "PUT",
-          body: JSON.stringify(form)
-        });
-        setSuccess(`Agendamento ${modalAppointment.id} atualizado com sucesso.`);
-      }
-
-      setSelectedDate(form.data);
-      closeModal();
-      await loadAgendamentos(form.data);
+      await api.criarAgendamento(form);
+      setModal(false);
+      await load();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -304,181 +69,177 @@ export default function Agenda() {
     }
   }
 
-  async function handleCancel(agendamento) {
-    const confirmed = window.confirm(
-      `Deseja cancelar o agendamento de ${agendamento.nome} as ${agendamento.hora}?`
-    );
-
-    if (!confirmed) return;
-
-    setError("");
-    setSuccess("");
-
+  async function concluir(id) {
     try {
-      await apiFetch(`/agendamento/${agendamento.id}`, {
-        method: "DELETE"
-      });
-      setSuccess(`Agendamento ${agendamento.id} cancelado.`);
-      await loadAgendamentos();
+      await api.concluirAgendamento(id);
+      await load();
     } catch (err) {
       setError(err.message);
     }
   }
 
-  async function handleComplete(agendamento) {
-    const confirmed = window.confirm(
-      `Confirmar que o atendimento de ${agendamento.nome} foi finalizado?`
-    );
-
-    if (!confirmed) return;
-
-    setError("");
-    setSuccess("");
-
+  async function cancelar(id) {
+    if (!window.confirm("Cancelar este agendamento?")) return;
     try {
-      await apiFetch(`/agendamento/${agendamento.id}/concluir`, {
-        method: "POST"
-      });
-      setSuccess(
-        `Atendimento finalizado e mensagem de agradecimento enviada para ${agendamento.nome}.`
-      );
-      await loadAgendamentos();
+      await api.cancelarAgendamento(id);
+      await load();
     } catch (err) {
       setError(err.message);
     }
   }
 
   return (
-    <section className="flex flex-col gap-6">
-      <Topbar
-        title="Agenda diaria"
-        subtitle="Agendamentos"
-        description="Controle atendimentos, abra o QR do WhatsApp e administre os clientes com a mesma linguagem visual da nova marca."
-      />
-      {error ? <p className="alert-error">{error}</p> : null}
-      {success ? <p className="alert-success">{success}</p> : null}
+    <Layout title="Agenda" subtitle="Gerencie os atendimentos">
+      <div className="flex flex-col gap-6">
+        {error ? (
+          <div className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-[#ff8f97]">{error}</div>
+        ) : null}
 
-      <AppointmentModal
-        agendamento={modalAppointment}
-        form={form}
-        onChange={handleFormChange}
-        onClose={closeModal}
-        onSubmit={handleModalSubmit}
-        saving={saving}
-        servicos={servicos.length ? servicos : [{ id: "default", nome: defaultServiceName }]}
-        type={modalType}
-      />
-
-      <div className="app-panel rounded-[2rem] p-6 md:p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-soft">
-              Visualizacao em tempo real da agenda.
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
-              className="field-dark max-w-[220px]"
-              type="date"
-              value={selectedDate}
-              onChange={(event) => setSelectedDate(event.target.value)}
+              className="field pl-9"
+              placeholder="Buscar cliente..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              className="btn-ghost"
-              onClick={() => window.open(CHATBOT_QR_URL, "_blank", "noopener,noreferrer")}
-              type="button"
-            >
-              Gerar QR do WhatsApp
-            </button>
-            <a
-              className="text-xs text-faint underline-offset-4 hover:text-white hover:underline"
-              href={CHATBOT_QR_URL}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Abrir QR em nova aba
-            </a>
-            <button
-              className="btn-gold"
-              onClick={openNewAppointmentModal}
-              type="button"
-            >
-              Novo agendamento
-            </button>
+          <button className="btn btn-primary" onClick={() => setModal(true)}>
+            <Plus className="h-4 w-4" /> Novo agendamento
+          </button>
+        </div>
+
+        <div className="panel min-w-0 overflow-hidden p-5 md:p-6">
+          <ScheduleCalendar
+            agendamentos={agendamentos}
+            horarios={horarios}
+            loading={loading}
+            onGenerateWeek={() => api.gerarSemana(todayIso()).then(load)}
+            onGoToday={load}
+          />
+        </div>
+
+        <div className="panel p-5 md:p-6">
+          <div className="mb-5">
+            <p className="kicker">Atendimentos</p>
+            <h3 className="mt-1 font-display text-lg font-semibold text-white">Todos os agendamentos</h3>
+          </div>
+          <div className="overflow-x-auto">
+            {loading ? (
+              <p className="text-sm text-muted">Carregando...</p>
+            ) : filtrados.length === 0 ? (
+              <p className="text-sm text-muted">Nenhum agendamento encontrado.</p>
+            ) : (
+              <table className="tbl text-sm">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Cliente</th>
+                    <th>Telefone</th>
+                    <th>Serviço</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtrados.map((a) => {
+                    const sv = servicos.find((s) => s.nome === a.servico);
+                    return (
+                      <tr key={a.id}>
+                        <td className="font-semibold text-[#7fb2ff]">{String(a.data).slice(0, 10)}</td>
+                        <td className="text-white">{a.hora}</td>
+                        <td className="text-white">{a.nome}</td>
+                        <td className="text-muted">{a.telefone}</td>
+                        <td className="text-slate-300">{a.servico}</td>
+                        <td className="font-semibold text-white">{formatBRL(sv?.preco ?? 0)}</td>
+                        <td>{statusPill(a.status)}</td>
+                        <td>
+                          {a.status === "confirmado" ? (
+                            <div className="flex items-center gap-2">
+                              <button className="btn btn-success px-2.5 py-1.5 text-xs" onClick={() => concluir(a.id)}>
+                                <Check className="h-3.5 w-3.5" /> Concluir
+                              </button>
+                              <button className="btn btn-danger-ghost px-2.5 py-1.5 text-xs" onClick={() => cancelar(a.id)}>
+                                <X className="h-3.5 w-3.5" /> Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
-        <div className="app-panel-muted mt-5 rounded-[1.4rem] px-4 py-3">
-          <p className="text-sm text-soft">
-            Servicos disponiveis para faturamento:{" "}
-            {servicos.length ? servicos.map((item) => item.nome).join(", ") : "carregando..."}
-          </p>
-        </div>
-        <div className="mt-6 overflow-x-auto">
-          {loading ? <p className="text-sm text-soft">Carregando agenda...</p> : null}
-          {!loading && !agendamentos.length ? (
-            <p className="text-sm text-soft">Nenhum agendamento para esta data.</p>
-          ) : null}
-          {!loading && agendamentos.length ? (
-            <table className="data-table text-sm">
-              <thead>
-                <tr>
-                  <th>Hora</th>
-                  <th>Cliente</th>
-                  <th>Servico</th>
-                  <th>Status</th>
-                  <th>Acoes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {agendamentos.map((row) => (
-                  <tr key={row.id}>
-                    <td>{row.hora}</td>
-                    <td>{row.nome}</td>
-                    <td>{row.servico}</td>
-                    <td>
-                      <span className={statusBadgeClass(row.status)}>{row.status}</span>
-                    </td>
-                    <td>
-                      <div className="flex flex-wrap gap-2">
-                      {row.status !== "concluido" && row.status !== "cancelado" ? (
-                        <button
-                          className="btn-success px-3 py-2"
-                          onClick={() => handleComplete(row)}
-                          type="button"
-                        >
-                          Finalizar
-                        </button>
-                      ) : null}
-                      <button
-                        className="btn-ghost px-3 py-2"
-                        onClick={() => openEditModal(row)}
-                        type="button"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        className="btn-danger px-3 py-2"
-                        onClick={() => handleCancel(row)}
-                        type="button"
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        className="btn-dark px-3 py-2"
-                        onClick={() => openViewModal(row)}
-                        type="button"
-                      >
-                        Ver cliente
-                      </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : null}
-        </div>
       </div>
-    </section>
+
+      {modal ? (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setModal(false)} />
+          <form
+            onSubmit={submit}
+            className="panel relative z-10 w-full max-w-md p-6 md:p-8"
+          >
+            <div className="mb-5 flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-[#7fb2ff]">
+                <UserPlus className="h-5 w-5" />
+              </span>
+              <div>
+                <h3 className="font-display text-lg font-semibold text-white">Novo agendamento</h3>
+                <p className="text-xs text-muted">Preencha os dados do cliente</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="kicker">Nome</span>
+                <input className="field mt-1" required value={form.nome} placeholder="Nome do cliente"
+                  onChange={(e) => setForm({ ...form, nome: e.target.value })} />
+              </label>
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="kicker">Telefone</span>
+                <input className="field mt-1" required value={form.telefone} placeholder="(11) 99999-0000"
+                  onChange={(e) => setForm({ ...form, telefone: e.target.value })} />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex flex-col gap-1.5 text-sm">
+                  <span className="kicker">Data</span>
+                  <input className="field mt-1" type="date" required value={form.data}
+                    onChange={(e) => setForm({ ...form, data: e.target.value })} />
+                </label>
+                <label className="flex flex-col gap-1.5 text-sm">
+                  <span className="kicker">Hora</span>
+                  <input className="field mt-1" type="time" required value={form.hora}
+                    onChange={(e) => setForm({ ...form, hora: e.target.value })} />
+                </label>
+              </div>
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="kicker">Serviço</span>
+                <select className="field mt-1" value={form.servico}
+                  onChange={(e) => setForm({ ...form, servico: e.target.value })}>
+                  {servicos.map((s) => (
+                    <option key={s.id} value={s.nome}>{s.nome} — {formatBRL(s.preco)}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="mt-6 flex items-center gap-3">
+              <button type="button" className="btn btn-ghost flex-1" onClick={() => setModal(false)}>Cancelar</button>
+              <button type="submit" className="btn btn-primary flex-1" disabled={saving}>
+                {saving ? "Agendando..." : "Agendar"}
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
+    </Layout>
   );
 }

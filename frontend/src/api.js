@@ -139,3 +139,139 @@ export async function apiFetch(path, options = {}) {
 
   return response.json();
 }
+
+export function todayIso() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+export function isoDaysAgo(days) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function isoDaysAhead(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+export function formatBRL(value) {
+  return Number(value || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+function qs(params) {
+  if (!params) return "";
+  const search = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== null && v !== "") search.set(k, v);
+  });
+  const s = search.toString();
+  return s ? `?${s}` : "";
+}
+
+export const api = {
+  async me() {
+    return apiFetch("/auth/me");
+  },
+  async metricas() {
+    return apiFetch("/relatorios/metricas");
+  },
+  async resumo(data) {
+    return apiFetch(`/relatorios/resumo${qs({ data })}`);
+  },
+  async faturamentoSemanal() {
+    return apiFetch("/relatorios/faturamento-semanal");
+  },
+  async clientes() {
+    return apiFetch("/clientes");
+  },
+  async agendamentos(data) {
+    return apiFetch(`/agendamentos${qs({ data })}`);
+  },
+  async criarAgendamento(payload) {
+    return apiFetch("/agendar", { method: "POST", body: JSON.stringify(payload) });
+  },
+  async atualizarAgendamento(id, payload) {
+    return apiFetch(`/agendamento/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+  },
+  async cancelarAgendamento(id) {
+    return apiFetch(`/agendamento/${id}`, { method: "DELETE" });
+  },
+  async concluirAgendamento(id) {
+    return apiFetch(`/agendamento/${id}/concluir`, { method: "POST" });
+  },
+  async horarios(dataInicial, dataFinal) {
+    return apiFetch(`/horarios${qs({ dataInicial, dataFinal })}`);
+  },
+  async gerarSemana(dataInicial) {
+    return apiFetch("/horarios/gerar-semana", {
+      method: "POST",
+      body: JSON.stringify({ dataInicial })
+    });
+  },
+  async criarHorario(data, hora) {
+    return apiFetch("/horarios", { method: "POST", body: JSON.stringify({ data, hora }) });
+  },
+  async excluirHorarios(data) {
+    return apiFetch(`/horarios${qs({ data })}`, { method: "DELETE" });
+  },
+  async alternarDisponibilidade(id, disponivel) {
+    return apiFetch(`/horarios/${id}/disponibilidade`, {
+      method: "PUT",
+      body: JSON.stringify({ disponivel })
+    });
+  },
+  async servicos() {
+    return apiFetch("/servicos");
+  },
+  async criarServico(payload) {
+    return apiFetch("/servicos", { method: "POST", body: JSON.stringify(payload) });
+  },
+  async atualizarServico(id, payload) {
+    return apiFetch(`/servicos/${id}`, { method: "PUT", body: JSON.stringify(payload) });
+  },
+  async excluirServico(id) {
+    return apiFetch(`/servicos/${id}`, { method: "DELETE" });
+  },
+  async financeiro(filters) {
+    return apiFetch(`/financeiro/atendimentos${qs(filters)}`);
+  },
+  async registrarPagamento(id, payload) {
+    return apiFetch(`/financeiro/atendimentos/${id}/pagamento`, {
+      method: "PUT",
+      body: JSON.stringify(payload)
+    });
+  },
+  async chatbotStatus() {
+    return apiFetch("/chatbot/status");
+  },
+  async assinaturasResumo() {
+    return apiFetch("/assinaturas/resumo");
+  },
+  async planos() {
+    return apiFetch("/assinaturas/planos");
+  },
+  async assinantes(status) {
+    return apiFetch(`/assinaturas/clientes${qs({ status })}`);
+  },
+  async criarAssinante(payload) {
+    return apiFetch("/assinaturas/clientes", { method: "POST", body: JSON.stringify(payload) });
+  },
+  async pagarAssinatura(id, payload) {
+    return apiFetch(`/assinaturas/clientes/${id}/pagamentos`, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  },
+  async consumirAssinatura(id, payload) {
+    return apiFetch(`/assinaturas/clientes/${id}/consumos`, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+  }
+};

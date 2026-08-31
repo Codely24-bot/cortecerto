@@ -1,105 +1,93 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import BrandLockup from "./BrandLockup.jsx";
-import { clearAuthSession, getCurrentUser } from "../api.js";
+import { NavLink } from "react-router-dom";
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Users,
+  Wallet,
+  MessageSquareText,
+  Settings,
+  ChevronsLeft,
+  ChevronsRight,
+  Scissors
+} from "lucide-react";
 
-const links = [
-  { to: "/dashboard", label: "Dashboard", hint: "Visao executiva" },
-  { to: "/financeiro", label: "Financeiro", hint: "Pagamentos do caixa" },
-  { to: "/agenda", label: "Agendamentos", hint: "Atendimentos do dia" },
-  { to: "/horarios", label: "Horarios", hint: "Escala e disponibilidade" },
-  { to: "/servicos", label: "Servicos", hint: "Catalogo e precos" },
-  { to: "/assinaturas", label: "Assinaturas", hint: "Mensalistas e recorrencia" }
+const navItems = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/caixa", label: "Caixa", icon: Wallet },
+  { to: "/chatbot", label: "Chatbot", icon: MessageSquareText },
+  { to: "/configuracoes", label: "Configurações", icon: Settings }
 ];
 
-export default function Sidebar({ mobile = false, onNavigate, onClose }) {
-  const navigate = useNavigate();
-  const user = getCurrentUser();
-
-  function handleLogout() {
-    clearAuthSession();
-    onClose?.();
-    onNavigate?.();
-    navigate("/", { replace: true });
-  }
-
+export default function Sidebar({ collapsed = false, onToggle, mobile = false, onNavigate }) {
   return (
-    <aside
-      id={mobile ? "mobile-navigation" : undefined}
-      className={`app-panel flex h-full flex-col gap-8 rounded-[2rem] p-5 md:p-6 ${
-        mobile ? "min-h-full overflow-y-auto" : ""
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <BrandLockup className="min-w-0 flex-1" />
-        {mobile ? (
-          <button
-            aria-label="Fechar menu"
-            className="btn-ghost mt-1 h-11 w-11 shrink-0 px-0 text-xl leading-none"
-            onClick={() => onClose?.()}
-            type="button"
-          >
-            &times;
-          </button>
-        ) : null}
+    <div className={`flex h-full flex-col gap-6 ${mobile ? "w-[272px]" : "w-full"} transition-all duration-300`}>
+      <div
+        className={`flex items-center gap-3 border-b border-white/10 pb-6 ${
+          collapsed && !mobile ? "justify-center px-0" : "px-2"
+        }`}
+      >
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primaryLight shadow-[0_10px_24px_rgba(17,85,204,0.45)]">
+          <Scissors className="h-5 w-5 text-white" />
+        </div>
+        {(!collapsed || mobile) && (
+          <div className="leading-tight">
+            <p className="font-display text-lg font-bold tracking-tight text-white">Corte Certo</p>
+            <p className="text-xs text-muted">Gestão de barbearia</p>
+          </div>
+        )}
       </div>
 
-      <div className="gold-divider" />
-
-      <nav className="flex flex-col gap-2">
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            onClick={() => onNavigate?.()}
-            to={link.to}
-            className={({ isActive }) =>
-              [
-                "group rounded-[1.35rem] border px-4 py-3 transition",
-                isActive
-                  ? "border-[rgba(242,200,107,0.3)] bg-[rgba(215,164,61,0.14)] shadow-[0_12px_28px_rgba(215,164,61,0.12)]"
-                  : "border-transparent bg-[rgba(255,255,255,0.02)] hover:border-[rgba(255,255,255,0.08)] hover:bg-[rgba(255,255,255,0.04)]"
-              ].join(" ")
-            }
-          >
-            {({ isActive }) => (
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p
-                    className="font-medium text-white"
-                  >
-                    {link.label}
-                  </p>
-                  <p className="mt-1 text-xs text-faint">{link.hint}</p>
-                </div>
-                <span
-                  className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
-                    isActive ? "bg-[#f2c86b]" : "bg-[rgba(255,255,255,0.12)]"
-                  }`}
-                />
-              </div>
-            )}
-          </NavLink>
-        ))}
+      <nav className="sidebar-nav flex-1 overflow-y-auto px-1">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={onNavigate}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""} ${
+                  collapsed && !mobile ? "justify-center px-0" : ""
+                }`
+              }
+              title={collapsed && !mobile ? item.label : undefined}
+            >
+              <Icon className="h-5 w-5 shrink-0" />
+              {(!collapsed || mobile) && <span>{item.label}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
 
-      <div className="mt-auto rounded-[1.6rem] border border-[rgba(242,200,107,0.14)] bg-[rgba(255,255,255,0.02)] p-4">
-        <p className="section-kicker">Conta SaaS</p>
-        <p className="mt-3 font-medium text-white">
-          {user?.barbearia?.nome || "Barbearia"}
-        </p>
-        <p className="mt-2 text-sm text-soft">
-          {user?.nome || "Usuario"} • {user?.email || "sem e-mail"}
-        </p>
-        <p className="mt-3 text-xs uppercase tracking-[0.18em] text-faint">
-          R$ {Number(user?.barbearia?.valorMensal || 99.9).toFixed(2).replace(".", ",")}/mes
-        </p>
-        <button
-          className="btn-ghost mt-4 w-full"
-          onClick={handleLogout}
-          type="button"
-        >
-          Sair
-        </button>
+      <div className="mt-auto space-y-3 px-1">
+        {collapsed && !mobile ? (
+          <div className="flex justify-center">
+            <span className="pill pill-green">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+            </span>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-primary/40 bg-primary/10 p-3">
+            <p className="kicker">Plano atual</p>
+            <p className="mt-1 font-display text-sm font-semibold text-white">Plano Profissional</p>
+            <p className="mt-1 text-xs text-muted">Válido até 30/09/2026</p>
+            <span className="pill pill-green mt-3">Ativo</span>
+          </div>
+        )}
+
+        {!mobile && (
+          <button
+            onClick={onToggle}
+            title={collapsed ? "Expandir menu" : "Recolher menu"}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-sm text-slate-300 transition hover:bg-white/10"
+          >
+            {collapsed ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
+            {!collapsed && <span>Recolher menu</span>}
+          </button>
+        )}
       </div>
-    </aside>
+    </div>
   );
 }

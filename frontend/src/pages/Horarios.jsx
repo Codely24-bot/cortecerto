@@ -183,7 +183,7 @@ export default function Horarios() {
       {success ? <p className="alert-success">{success}</p> : null}
       <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
         <div className="app-panel rounded-[2rem] p-6 md:p-8">
-          <h3 className="font-display text-xl text-white">Agenda semanal automatica</h3>
+          <h3 className="font-display text-xl text-ink">Agenda semanal automatica</h3>
           <p className="mt-2 text-sm text-soft">
             Gere horarios de terca a sabado, das 07:00 as 19:00, com pausa de 12:00 a 14:00.
           </p>
@@ -201,7 +201,7 @@ export default function Horarios() {
               {slots.map((slot) => (
                 <span
                   key={slot}
-                  className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-2 text-sm text-soft"
+                  className="rounded-full border border-[rgba(15,23,42,0.1)] bg-[rgba(15,23,42,0.04)] px-4 py-2 text-sm text-soft"
                 >
                   {slot}
                 </span>
@@ -218,7 +218,7 @@ export default function Horarios() {
           </div>
         </div>
         <div className="app-panel rounded-[2rem] p-6 md:p-8">
-          <h3 className="font-display text-xl text-white">Criar horario manual</h3>
+          <h3 className="font-display text-xl text-ink">Criar horario manual</h3>
           <form className="flex flex-col gap-4 mt-6" onSubmit={handleManualCreate}>
             <input
               className="field-dark"
@@ -245,7 +245,7 @@ export default function Horarios() {
         </div>
       </div>
       <div className="app-panel rounded-[2rem] p-6 md:p-8">
-        <h3 className="font-display text-xl text-white">Horarios da semana</h3>
+        <h3 className="font-display text-xl text-ink">Horarios da semana</h3>
         <p className="mt-2 text-sm text-soft">
           Somente o admin pode marcar cada horario como disponivel ou indisponivel.
         </p>
@@ -259,7 +259,7 @@ export default function Horarios() {
               <div key={date} className="app-panel-muted rounded-[1.6rem] p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <h4 className="font-display text-lg text-white">{formatDateLabel(date)}</h4>
+                    <h4 className="font-display text-lg text-ink">{formatDateLabel(date)}</h4>
                     <span className="text-xs uppercase tracking-[0.2em] text-faint">
                       {items.length} horarios
                     </span>
@@ -277,10 +277,10 @@ export default function Horarios() {
                   {items.map((horario) => (
                     <div
                       key={horario.id}
-                      className="rounded-[1.3rem] border border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.03)] px-4 py-4 flex items-center justify-between gap-4"
+                      className="rounded-[1.3rem] border border-[rgba(15,23,42,0.09)] bg-[rgba(15,23,42,0.04)] px-4 py-4 flex items-center justify-between gap-4"
                     >
                       <div>
-                        <p className="font-medium text-white">{horario.hora}</p>
+                        <p className="font-medium text-ink">{horario.hora}</p>
                         <p className="text-xs text-faint">Controle manual do admin</p>
                       </div>
                       <div className="flex gap-2">

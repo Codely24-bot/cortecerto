@@ -2,54 +2,50 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch, setAuthSession } from "../api.js";
 import BrandLockup from "../components/BrandLockup.jsx";
+import { Scissors, CalendarDays, Wallet, MessageCircle, Lock } from "lucide-react";
 
 const highlights = [
   {
-    title: "SaaS recorrente",
-    description: "Plano mensal de R$ 99,90 para operar agenda, servicos e recorrencia."
+    icon: CalendarDays,
+    title: "Agenda inteligente",
+    description: "Controle de horários por barbeiro com visualização semanal."
   },
   {
-    title: "Multi-barbearia",
-    description: "Cada conta entra com seu proprio login e enxerga apenas os dados da sua unidade."
+    icon: Wallet,
+    title: "Caixa & financeiro",
+    description: "Faturamento, metas e relatórios de receita em tempo real."
   },
   {
-    title: "Cadastro com e-mail",
-    description: "O responsavel da barbearia cria a conta com e-mail e senha salvos no banco."
-  },
-  {
-    title: "Pronto para escalar",
-    description: "Estrutura preparada para barbeiros autonomos e barbearias com mais de uma cadeira."
+    icon: MessageCircle,
+    title: "Chatbot no WhatsApp",
+    description: "Agendamentos automáticos e resposta 24h pelo assistente."
   }
 ];
 
-const initialLoginForm = {
-  email: "",
-  senha: ""
-};
+const stepList = [
+  {
+    title: "Crie seu aplicativo",
+    description: "Atualize a descrição do seu aplicativo para a versão mais recente da especificação."
+  },
+  {
+    title: "Vincule sua barbearia",
+    description: "Conecte sua unidade para gerenciar agenda, clientes e caixa em um só lugar."
+  },
+  {
+    title: "Comece a operar",
+    description: "Aproveite o painel completo e o chatbot integrado ao WhatsApp."
+  }
+];
 
-const initialRegisterForm = {
-  nome: "",
-  nomeBarbearia: "",
-  email: "",
-  senha: "",
-  confirmarSenha: "",
-  tipoConta: "barbearia"
-};
+const initialForm = { email: "", senha: "" };
 
 export default function Login() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState("login");
-  const [loginForm, setLoginForm] = useState(initialLoginForm);
-  const [registerForm, setRegisterForm] = useState(initialRegisterForm);
+  const [form, setForm] = useState(initialForm);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function changeMode(nextMode) {
-    setMode(nextMode);
-    setError("");
-  }
-
-  async function handleLoginSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     setLoading(true);
     setError("");
@@ -57,43 +53,8 @@ export default function Login() {
     try {
       const data = await apiFetch("/auth/login", {
         method: "POST",
-        body: JSON.stringify(loginForm)
+        body: JSON.stringify(form)
       });
-
-      setAuthSession(data);
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleRegisterSubmit(event) {
-    event.preventDefault();
-    setError("");
-
-    if (registerForm.senha !== registerForm.confirmarSenha) {
-      setError("A confirmacao de senha nao confere.");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const payload = {
-        nome: registerForm.nome,
-        nomeBarbearia: registerForm.nomeBarbearia,
-        email: registerForm.email,
-        senha: registerForm.senha,
-        tipoConta: registerForm.tipoConta
-      };
-
-      const data = await apiFetch("/auth/register", {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-
       setAuthSession(data);
       navigate("/dashboard");
     } catch (err) {
@@ -104,224 +65,102 @@ export default function Login() {
   }
 
   return (
-    <section className="mx-auto flex min-h-screen w-full max-w-[1640px] items-center px-4 py-6 sm:px-6 lg:px-8">
-      <div className="grid w-full gap-6 xl:grid-cols-[1.18fr_0.82fr]">
-        <div className="app-panel-strong surface-grid relative overflow-hidden rounded-[2.2rem] p-6 md:p-8 xl:p-10">
-          <div className="absolute -left-24 bottom-0 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(215,164,61,0.16),transparent_68%)]" />
-          <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.06),transparent_72%)]" />
+    <section className="flex min-h-screen items-center justify-center px-4 py-8">
+      <div className="panel w-full max-w-[1080px] overflow-hidden">
+        <div className="grid lg:grid-cols-2">
+          <div className="flex flex-col gap-8 p-8 md:p-10">
+            <BrandLockup />
 
-          <div className="relative flex h-full flex-col gap-8">
-            <BrandLockup showTagline={false} />
+            <div className="space-y-6">
+              <p className="text-sm text-muted">
+                Acesso administrativo do Corte Certo para barbearias, barbeiros e estúdios.
+              </p>
 
-            <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-              <div className="space-y-6">
-                <div>
-                  <p className="section-kicker">SaaS para barbearias</p>
-                  <h1 className="mt-4 max-w-xl font-display text-4xl font-semibold leading-tight text-white md:text-5xl">
-                    Cadastro por e-mail, assinatura mensal e operacao isolada por unidade.
-                  </h1>
-                  <p className="mt-5 max-w-xl text-base leading-8 text-soft">
-                    O MESTRE DA NAVALHA agora esta pronto para atender varias barbearias em um
-                    unico SaaS, com login seguro, separacao de dados e plano mensal de R$ 99,90.
-                  </p>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {highlights.map((item) => (
-                    <div
-                      key={item.title}
-                      className="app-panel rounded-[1.6rem] p-4"
-                    >
-                      <p className="font-display text-base font-semibold text-white">
-                        {item.title}
-                      </p>
-                      <p className="mt-2 text-sm leading-6 text-soft">
-                        {item.description}
-                      </p>
+              <div className="hidden gap-3 sm:grid sm:grid-cols-1">
+                {highlights.map((h) => (
+                  <div key={h.title} className="flex items-start gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-[#7fb2ff]">
+                      <h.icon className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{h.title}</p>
+                      <p className="text-xs text-muted">{h.description}</p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <div className="flex flex-col items-center gap-5">
-                <div className="brand-frame overflow-hidden rounded-[2rem] p-3">
-                  <img
-                    src="/brand/logo.png"
-                    alt="Logo MESTRE DA NAVALHA"
-                    className="h-auto w-full max-w-[540px] rounded-[1.4rem] object-cover"
-                  />
+            <div className="mt-auto hidden space-y-4 sm:block">
+              {stepList.map((s, i) => (
+                <div key={s.title} className="flex items-start gap-3">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-primary/50 bg-primary/15 font-display text-xs font-bold text-[#7fb2ff]">
+                    {i + 1}
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{s.title}</p>
+                    <p className="text-xs text-muted">{s.description}</p>
+                  </div>
                 </div>
-                <p className="text-center text-sm uppercase tracking-[0.34em] text-faint">
-                  Acesso com e-mail, senha e tenancy por barbearia
-                </p>
-              </div>
+              ))}
             </div>
           </div>
-        </div>
 
-        <div className="app-panel rounded-[2.2rem] p-6 md:p-8 xl:p-10">
-          <div className="mx-auto flex h-full w-full max-w-[460px] flex-col justify-center">
-            <p className="section-kicker">Acesso administrativo</p>
-            <h2 className="mt-4 font-display text-4xl font-semibold text-white">
-              {mode === "login" ? "Entrar no painel" : "Criar conta SaaS"}
-            </h2>
-            <p className="mt-4 text-base leading-8 text-soft">
-              {mode === "login"
-                ? "Entre com e-mail e senha para abrir apenas os dados da sua barbearia."
-                : "Cadastre sua barbearia ou operacao individual com mensalidade de R$ 99,90."}
-            </p>
-
-            <div className="mt-8 rounded-[1.8rem] border border-[rgba(242,200,107,0.16)] bg-[rgba(255,255,255,0.025)] p-5">
-              <div className="flex flex-wrap gap-3">
-                <button
-                  className={mode === "login" ? "btn-gold" : "btn-ghost"}
-                  onClick={() => changeMode("login")}
-                  type="button"
-                >
-                  Entrar
-                </button>
-                <button
-                  className={mode === "register" ? "btn-gold" : "btn-ghost"}
-                  onClick={() => changeMode("register")}
-                  type="button"
-                >
-                  Criar conta
-                </button>
+          <div className="border-t border-white/10 bg-white/[0.03] p-8 md:p-10 lg:border-l lg:border-t-0">
+            <div className="mx-auto flex h-full w-full max-w-[400px] flex-col justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primaryLight shadow-[0_10px_24px_rgba(17,85,204,0.45)]">
+                <Scissors className="h-6 w-6 text-white" />
               </div>
-              <div className="mt-5">
-                <BrandLockup compact className="items-center" />
-              </div>
-            </div>
+              <h1 className="mt-6 font-display text-3xl font-bold text-white">Entrar no painel</h1>
+              <p className="mt-2 text-sm text-muted">
+                Acesse com o e-mail e a senha da sua barbearia.
+              </p>
 
-            {mode === "login" ? (
-              <form onSubmit={handleLoginSubmit} className="mt-8 flex flex-col gap-4">
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  E-mail
+              <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="kicker">E-mail</span>
                   <input
-                    className="field-dark"
+                    className="field mt-1"
                     placeholder="Digite seu e-mail"
                     type="email"
-                    value={loginForm.email}
-                    onChange={(event) =>
-                      setLoginForm({ ...loginForm, email: event.target.value })
-                    }
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </label>
 
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  Senha
+                <label className="flex flex-col gap-2 text-sm">
+                  <span className="kicker">Senha</span>
                   <input
-                    className="field-dark"
+                    className="field mt-1"
                     placeholder="Digite sua senha"
                     type="password"
-                    value={loginForm.senha}
-                    onChange={(event) =>
-                      setLoginForm({ ...loginForm, senha: event.target.value })
-                    }
+                    value={form.senha}
+                    onChange={(e) => setForm({ ...form, senha: e.target.value })}
                   />
                 </label>
 
-                {error ? <p className="alert-error">{error}</p> : null}
+                {error ? (
+                  <p className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-[#ff8f97]">
+                    {error}
+                  </p>
+                ) : null}
 
-                <button className="btn-gold mt-2 w-full" disabled={loading} type="submit">
-                  {loading ? "Entrando..." : "Entrar com e-mail"}
+                <button className="btn btn-primary mt-2 w-full" disabled={loading} type="submit">
+                  {loading ? "Entrando..." : "Entrar no painel"}
                 </button>
               </form>
-            ) : (
-              <form onSubmit={handleRegisterSubmit} className="mt-8 flex flex-col gap-4">
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  Perfil
-                  <select
-                    className="field-dark"
-                    value={registerForm.tipoConta}
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, tipoConta: event.target.value })
-                    }
-                  >
-                    <option value="barbearia">Tenho uma barbearia</option>
-                    <option value="barbeiro">Sou barbeiro autonomo</option>
-                  </select>
-                </label>
 
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  Nome do responsavel
-                  <input
-                    className="field-dark"
-                    placeholder="Seu nome"
-                    value={registerForm.nome}
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, nome: event.target.value })
-                    }
-                  />
-                </label>
+              <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted">
+                <Lock className="h-3.5 w-3.5" />
+                Sessão protegida por token seguro
+              </div>
 
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  {registerForm.tipoConta === "barbeiro"
-                    ? "Nome profissional ou do estudio"
-                    : "Nome da barbearia"}
-                  <input
-                    className="field-dark"
-                    placeholder="Como sua operacao sera exibida"
-                    value={registerForm.nomeBarbearia}
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, nomeBarbearia: event.target.value })
-                    }
-                  />
-                </label>
-
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  E-mail
-                  <input
-                    className="field-dark"
-                    placeholder="E-mail principal da conta"
-                    type="email"
-                    value={registerForm.email}
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, email: event.target.value })
-                    }
-                  />
-                </label>
-
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  Senha
-                  <input
-                    className="field-dark"
-                    placeholder="Crie uma senha forte"
-                    type="password"
-                    value={registerForm.senha}
-                    onChange={(event) =>
-                      setRegisterForm({ ...registerForm, senha: event.target.value })
-                    }
-                  />
-                </label>
-
-                <label className="flex flex-col gap-2 text-sm text-soft">
-                  Confirmar senha
-                  <input
-                    className="field-dark"
-                    placeholder="Repita a senha"
-                    type="password"
-                    value={registerForm.confirmarSenha}
-                    onChange={(event) =>
-                      setRegisterForm({
-                        ...registerForm,
-                        confirmarSenha: event.target.value
-                      })
-                    }
-                  />
-                </label>
-
-                {error ? <p className="alert-error">{error}</p> : null}
-
-                <button className="btn-gold mt-2 w-full" disabled={loading} type="submit">
-                  {loading ? "Criando conta..." : "Criar conta por R$ 99,90/mes"}
-                </button>
-              </form>
-            )}
-
-            <p className="mt-6 text-center text-sm text-faint">
-              Credenciais salvas no banco e sessao autenticada por token seguro.
-            </p>
+              <div className="mt-6 rounded-xl border border-white/8 bg-white/4 p-4 text-xs text-muted">
+                <p className="kicker mb-2">Credenciais de teste</p>
+                <p>E-mail: <span className="text-slate-200">admin@cortecerto.local</span></p>
+                <p>Senha: <span className="text-slate-200">admin123</span></p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
