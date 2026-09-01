@@ -70,7 +70,7 @@ async function bootstrapApp() {
   console.log("Resumo de inicializacao:", runtimeSummary);
   await initializeDatabase();
   await ensureDefaultServices(DEFAULT_BARBERSHOP_ID);
-  return createApp({ includeFrontend: false, enableChatbot: false });
+  return createApp({ includeFrontend: false });
 }
 
 async function getApp() {

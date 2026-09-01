@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch, setAuthSession } from "../api.js";
 import BrandLockup from "../components/BrandLockup.jsx";
-import { Scissors, CalendarDays, Wallet, MessageCircle, Lock } from "lucide-react";
+import { Scissors, CalendarDays, Wallet, Lock } from "lucide-react";
 
 const highlights = [
   {
@@ -14,11 +14,6 @@ const highlights = [
     icon: Wallet,
     title: "Caixa & financeiro",
     description: "Faturamento, metas e relatórios de receita em tempo real."
-  },
-  {
-    icon: MessageCircle,
-    title: "Chatbot no WhatsApp",
-    description: "Agendamentos automáticos e resposta 24h pelo assistente."
   }
 ];
 
@@ -33,7 +28,7 @@ const stepList = [
   },
   {
     title: "Comece a operar",
-    description: "Aproveite o painel completo e o chatbot integrado ao WhatsApp."
+    description: "Aproveite o painel completo de gestão para sua barbearia."
   }
 ];
 

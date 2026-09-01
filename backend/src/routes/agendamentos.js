@@ -2,10 +2,6 @@ import express from "express";
 import { z } from "zod";
 import { pool, query } from "../db.js";
 import { getRequestBarbershopId, requireAdmin } from "../middleware/auth.js";
-import {
-  sendChatbotCompletionThanks,
-  sendChatbotConfirmation
-} from "../integrations/chatbotAdapter.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ensureDefaultServices } from "../services/serviceCatalog.js";
 import { DEFAULT_BARBERSHOP_ID } from "../config.js";
@@ -126,12 +122,6 @@ router.post("/agendar", asyncHandler(async (req, res) => {
     const agendamento = inserted.rows[0];
     await scheduleAppointmentReminders(asExecutor(client), agendamento);
     await client.query("COMMIT");
-
-    try {
-      await sendChatbotConfirmation(agendamento);
-    } catch (error) {
-      // Falha de webhook nao deve quebrar o agendamento.
-    }
 
     return res.status(201).json(agendamento);
   } catch (error) {
@@ -390,12 +380,6 @@ router.post("/agendamento/:id/concluir", requireAdmin, asyncHandler(async (req, 
     throw error;
   } finally {
     client.release();
-  }
-
-  try {
-    await sendChatbotCompletionThanks(agendamento);
-  } catch (error) {
-    // Falha no envio da mensagem nao deve quebrar a conclusao.
   }
 
   return res.json(agendamento);

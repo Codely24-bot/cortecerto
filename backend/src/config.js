@@ -56,14 +56,6 @@ export function isMockDatabase() {
   return process.env.MOCK_DB === "true" || !getDatabaseUrl();
 }
 
-export function getChatbotEnabled() {
-  return process.env.CHATBOT_ENABLED === "true";
-}
-
-export function getChatbotPublicUrl() {
-  return (process.env.CHATBOT_PUBLIC_URL || "").trim().replace(/\/+$/, "");
-}
-
 export function isRailwayRuntime() {
   return RAILWAY_ENV_KEYS.some((key) => Boolean(process.env[key]));
 }
@@ -82,8 +74,6 @@ export function getRuntimeSummary() {
     barbeariaId: DEFAULT_BARBERSHOP_ID,
     apiUrl: getPublicApiUrl(),
     databaseHost,
-    chatbotEnabled: getChatbotEnabled(),
-    chatbotPublicUrl: getChatbotPublicUrl(),
     hasDatabaseUrl: Boolean(databaseUrl)
   };
 }
@@ -135,7 +125,7 @@ export function validateRuntimeConfig() {
 
   if (!apiUrl) {
     warnings.push(
-      "API_URL nao configurada. Defina a URL publica do servico no Railway para links absolutos e chatbot."
+      "API_URL nao configurada. Defina a URL publica do servico no Railway para links absolutos."
     );
   } else if (!/^https?:\/\//i.test(apiUrl)) {
     errors.push("API_URL deve comecar com http:// ou https://");

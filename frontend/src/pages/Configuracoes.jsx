@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
-import { Store, CreditCard, MessageCircle, LogOut } from "lucide-react";
+import { Store, CreditCard, LogOut } from "lucide-react";
 import { api, clearAuthSession } from "../api.js";
-
-const toggles = [
-  { label: "Lembretes automáticos", desc: "Envia lembrete de agendamento 2h antes", on: true },
-  { label: "Confirmação por WhatsApp", desc: "Cliente confirma o horário pelo bot", on: true },
-  { label: "Notificações de ausência", desc: "Avisa quando um cliente não comparece", on: false }
-];
 
 export default function Configuracoes() {
   const navigate = useNavigate();
@@ -59,29 +53,6 @@ export default function Configuracoes() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="panel p-5 md:p-6">
-            <div className="mb-5 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300"><MessageCircle className="h-5 w-5" /></span>
-              <div>
-                <h3 className="font-display text-lg font-semibold text-white">Chatbot & WhatsApp</h3>
-                <p className="text-sm text-muted">Preferências do assistente virtual</p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              {toggles.map((t) => (
-                <div key={t.label} className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-white">{t.label}</p>
-                    <p className="text-xs text-muted">{t.desc}</p>
-                  </div>
-                  <span className={`switch ${t.on ? "switch-on" : ""}`}>
-                    <span className="switch-knob" />
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className="panel p-5 md:p-6">
             <div className="mb-5 flex items-center gap-3">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-400/15 text-amber-300"><CreditCard className="h-5 w-5" /></span>

@@ -7,14 +7,12 @@ import {
 } from "./db.js";
 import {
   DEFAULT_BARBERSHOP_ID,
-  getChatbotEnabled,
   getRuntimeSummary,
   validateRuntimeConfig
 } from "./config.js";
 import { createApp } from "./createApp.js";
 
 dotenv.config();
-const chatbotEnabled = getChatbotEnabled();
 
 async function bootstrap() {
   const validation = validateRuntimeConfig();
@@ -37,14 +35,12 @@ async function bootstrap() {
   startReminders();
   startSlotExpiryMonitor();
   const app = await createApp({
-    includeFrontend: true,
-    enableChatbot: chatbotEnabled
+    includeFrontend: true
   });
 
   const port = process.env.PORT || 4000;
   app.listen(port, () => {
     console.log(`API rodando na porta ${port}`);
-    console.log(`Chatbot integrado ${chatbotEnabled ? "habilitado" : "desabilitado"}.`);
     console.log(`Banco conectado e schema validado para a barbearia ${DEFAULT_BARBERSHOP_ID}.`);
   });
 }

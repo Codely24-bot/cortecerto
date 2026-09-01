@@ -48,16 +48,6 @@ function resolveApiUrl() {
 
 export const API_URL = resolveApiUrl();
 
-export function resolveChatbotQrUrl() {
-  const rawChatbotUrl = normalizeBaseUrl((import.meta.env.VITE_CHATBOT_URL || "").trim());
-
-  if (rawChatbotUrl && !shouldIgnoreLoopbackUrl(rawChatbotUrl)) {
-    return rawChatbotUrl;
-  }
-
-  return `${API_URL}/qr`;
-}
-
 export function getToken() {
   const session = getAuthSession();
 
@@ -246,9 +236,6 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(payload)
     });
-  },
-  async chatbotStatus() {
-    return apiFetch("/chatbot/status");
   },
   async assinaturasResumo() {
     return apiFetch("/assinaturas/resumo");

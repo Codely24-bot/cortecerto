@@ -1,12 +1,11 @@
 # CORTE CERTO
 
-Web app para barbearias com painel administrativo, backend e integracao com chatbot.
+Web app para barbearias com painel administrativo e backend (frontend + backend em Node.js).
 
-Este projeto possui 3 camadas principais:
+## Estrutura
 
-1. API / Backend (`backend`)
-2. Painel Admin (`frontend`)
-3. Integracao com chatbot via API (`backend/src/integrations/chatbotAdapter.js`)
+1. API / Backend (`backend`) - Node.js + Express + PostgreSQL
+2. Painel Admin (`frontend`) - React + Vite + TailwindCSS
 
 ## Deploy no Railway
 
@@ -17,10 +16,9 @@ O repositorio foi preparado para deploy pelo root no Railway.
 - Node: `20.x` via `.nvmrc`
 - Healthcheck: `/health`
 
-Arquivos de exemplo para deploy:
+Arquivo de exemplo para deploy:
 
 - `.env.railway.app.example`: servico principal no Railway
-- `.env.railway.chatbot.example`: chatbot WhatsApp em servico separado e opcional
 
 ### Checklist de deploy
 
@@ -42,13 +40,11 @@ Arquivos de exemplo para deploy:
 - `DATABASE_IDLE_TIMEOUT_MS`: `30000`
 - `AUTH_TOKEN_SECRET`: segredo forte usado para assinar as sessoes de login
 - `AUTH_TOKEN_TTL_DAYS`: duracao da sessao do painel, ex. `30`
-- `SERVICE_AUTH_TOKEN`: token tecnico para chatbot/integracoes
+- `SERVICE_AUTH_TOKEN`: token tecnico para integracoes
 - `BARBEARIA_ID`: identificador da barbearia, ex. `default`
 - `BARBEARIA_NOME`: nome exibido no sistema
 - `API_URL`: URL publica da aplicacao, ex. `https://seu-app.railway.app`
-- `CHATBOT_WEBHOOK_URL`: opcional, URL do webhook do chatbot
-- `CHATBOT_PUBLIC_URL`: opcional, URL publica do servico do chatbot para redirecionar `/qr`
-- `CHATBOT_ENABLED`: `false` por padrao no Railway
+- `ADMIN_PASS`: senha do login admin local (senha master)
 
 ### Observacoes de deploy
 
@@ -56,10 +52,22 @@ Arquivos de exemplo para deploy:
 - O frontend usa a mesma origem da aplicacao por padrao, entao `VITE_API_URL` pode ficar vazio.
 - O backend aplica o schema automaticamente ao iniciar.
 - O backend valida as variaveis criticas e falha cedo com mensagens mais claras de configuracao.
-- O modulo de WhatsApp foi deixado opcional no servidor para evitar falhas de deploy em ambientes sem Chromium ou sessao persistente.
-- Se quiser executar o chatbot no Railway, use um servico separado e habilite `CHATBOT_ENABLED=true` apenas em ambiente compativel.
-- Se quiser rodar tudo no mesmo servico, mantenha o repositorio em um unico deploy e defina `CHATBOT_ENABLED=true`.
-- O workspace raiz agora instala `backend`, `frontend` e `chatbot`, permitindo deploy unificado quando o ambiente suportar o WhatsApp.
+
+## Deploy na Hostinger (Node.js web app)
+
+Este projeto e um app Node.js (Express) que serve frontend + backend. Para publicar na Hostinger:
+
+1. Em **Websites → Add Website**, escolha **Node.js web app** (nao o deploy estatico de Git).
+2. Selecione **Import Git repository** e conecte o repositorio do GitHub.
+3. Deixe o hPanel detectar o framework (Express) e confira:
+   - **Entry file**: `backend/src/server.js`
+   - **Node version**: 20.x
+   - **Build command**: `npm run build`
+   - **Output directory**: vazio (app server-side; o backend serve o frontend de `frontend/dist`)
+4. Adicione as **variaveis de ambiente** no painel (ex.: `ADMIN_PASS`, `BARBEARIA_ID`, `API_URL`, e `DATABASE_URL` se usar banco).
+5. **Deploy** e acesse o dominio.
+
+> A API e o painel sao servidos pelo mesmo processo Node na mesma porta.
 
 ## Backend
 
@@ -102,52 +110,12 @@ Para usar com Supabase localmente:
 Schema do banco:
 
 - `backend/src/sql/schema.sql`
-- Tabelas de SaaS adicionadas:
+- Tabelas de SaaS:
   - `barbearias` com slug, plano e status da assinatura
   - `usuarios_painel` com e-mail unico e hash de senha
 
 ## Frontend
 
 - React + TailwindCSS
-- Telas: login, dashboard, agenda, horarios e servicos
+- Telas: login, dashboard, agenda, horarios, servicos, caixa, clientes e configuracoes
 - `VITE_API_URL` pode ficar vazio quando frontend e backend estao no mesmo servico
-
-## Integracao com Chatbot
-
-O arquivo `backend/src/integrations/chatbotAdapter.js` recebe o webhook.
-Substitua a logica pelo codigo do seu chatbot quando estiver pronto.
-
-## Chatbot WhatsApp
-
-O chatbot foi preparado em `chatbot/robo.js` usando a base enviada por voce.
-Ele conversa com a API para buscar horarios e criar agendamentos.
-
-### Publicar chatbot em servico separado no Railway
-
-1. Crie um segundo servico no Railway apontando para este mesmo repositorio.
-2. No servico do chatbot, use `npm run chatbot:install` como build command.
-3. No servico do chatbot, use `npm run chatbot:start` como start command.
-4. Configure as variaveis com base em `.env.railway.chatbot.example`.
-5. Aponte `API_URL` para a URL publica do servico principal.
-6. Defina `CHATBOT_PUBLIC_URL` no app principal com a URL base do servico do chatbot.
-7. Abra `/qr` na URL do servico do chatbot, ou `/api/qr` no app principal, para autenticar o WhatsApp.
-
-Variaveis recomendadas para o servico do chatbot:
-
-- `PORT=3000`
-- `API_URL=https://seu-app-principal.up.railway.app`
-- `BARBEARIA_ID=corte-certo`
-- `BARBEARIA_NOME=CORTE CERTO`
-- `ADMIN_PASS=mesmo-valor-do-SERVICE_AUTH_TOKEN`
-
-Rotas uteis do servico do chatbot:
-
-- `/qr`
-- `/qr.png`
-- `/chatbot/status`
-- `/webhook`
-
-Variaveis:
-
-- `chatbot/.env`: `API_URL`, `BARBEARIA_ID`, `PORT`, `ADMIN_PASS`
-- `backend/.env`: `CHATBOT_WEBHOOK_URL` pode apontar para `http://localhost:3000/webhook`

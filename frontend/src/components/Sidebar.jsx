@@ -4,7 +4,6 @@ import {
   CalendarDays,
   Users,
   Wallet,
-  MessageSquareText,
   Settings,
   ChevronsLeft,
   ChevronsRight,
@@ -16,7 +15,6 @@ const navItems = [
   { to: "/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/caixa", label: "Caixa", icon: Wallet },
-  { to: "/chatbot", label: "Chatbot", icon: MessageSquareText },
   { to: "/configuracoes", label: "Configurações", icon: Settings }
 ];
 

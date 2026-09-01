@@ -58,10 +58,3 @@ export const caixaItems = [
   { date: "18/09", client: "Gabriel Lima", service: "Corte + Barba", method: "Pix", value: "R$ 90,00", status: "Pendente" },
   { date: "17/09", client: "Daniel Rocha", service: "Corte", method: "Cartão", value: "R$ 40,00", status: "Pago" }
 ];
-
-export const chatbotMessages = [
-  { from: "client", name: "Bruno Santos", text: "Oi! Quero marcar um horário amanhã de manhã." },
-  { from: "bot", text: "Olá, Bruno! 👋 Temos disponível amanhã às 09:00 e 10:00. Qual prefere?" },
-  { from: "client", name: "Bruno Santos", text: "Fecho às 09:00 com o Lucas." },
-  { from: "bot", text: "Perfeito! Seu corte de barba está agendado para amanhã 09:00 com o Lucas. ✅" }
-];

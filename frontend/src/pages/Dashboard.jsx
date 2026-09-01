@@ -4,7 +4,6 @@ import MetricCard from "../components/MetricCard.jsx";
 import ScheduleCalendar from "../components/ScheduleCalendar.jsx";
 import UpcomingAppointments from "../components/UpcomingAppointments.jsx";
 import RevenueChart from "../components/RevenueChart.jsx";
-import ChatbotStatus from "../components/ChatbotStatus.jsx";
 import { api, todayIso, isoDaysAgo, isoDaysAhead, formatBRL } from "../api.js";
 import { CalendarCheck2, Banknote, Users, TrendingUp, RotateCw } from "lucide-react";
 
@@ -21,7 +20,6 @@ export default function Dashboard() {
   const [agendamentos, setAgendamentos] = useState([]);
   const [horarios, setHorarios] = useState([]);
   const [revenue, setRevenue] = useState([]);
-  const [chatbot, setChatbot] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [refreshKey, setRefreshKey] = useState(0);
@@ -30,12 +28,11 @@ export default function Dashboard() {
     setLoading(true);
     setError("");
     try {
-      const [m, ag, ho, rev, cbot] = await Promise.all([
+      const [m, ag, ho, rev] = await Promise.all([
         api.metricas(),
         api.agendamentos(todayIso()),
         api.horarios(isoDaysAgo(7), isoDaysAhead(21)),
-        api.faturamentoSemanal(),
-        api.chatbotStatus()
+        api.faturamentoSemanal()
       ]);
       setMetrics(m);
       setAgendamentos(ag);
@@ -47,7 +44,6 @@ export default function Dashboard() {
           return { label: WEEKDAY_NAMES[d.getDay()], value: Number(r.valor) || 0 };
         })
       );
-      setChatbot(cbot);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -115,13 +111,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-          <div className="panel p-5 md:p-6">
-            <RevenueChart data={revenue} />
-          </div>
-          <div className="min-h-[260px]">
-            <ChatbotStatus status={chatbot} loading={loading} />
-          </div>
+        <div className="panel p-5 md:p-6">
+          <RevenueChart data={revenue} />
         </div>
 
         <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">

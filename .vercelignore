@@ -8,8 +8,6 @@ frontend/.env
 frontend/.env.local
 backend/node_modules
 backend/.env
-chatbot/node_modules
-chatbot/.env
 frontend/dist
 dist
 *.log
@@ -17,8 +15,4 @@ npm.err.log
 npm.log
 backend/*.log
 frontend/*.log
-chatbot/.wwebjs_auth
-chatbot/.wwebjs_cache
-chatbot/.wwebjs_auth_backup_*
-chatbot/.wwebjs_cache_backup_*
 backend/.wwebjs_cache
