@@ -18,6 +18,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendDistPath = path.resolve(__dirname, "../../frontend/dist");
 
+function registerApiRoutes(application) {
+  application.use(adminRoutes);
+  application.use(horariosRoutes);
+  application.use(agendamentosRoutes);
+  application.use(relatoriosRoutes);
+  application.use(servicosRoutes);
+  application.use(assinaturasRoutes);
+  application.use(financeiroRoutes);
+  application.use(clientesRoutes);
+  application.use("/api", adminRoutes);
+  application.use("/api", horariosRoutes);
+  application.use("/api", agendamentosRoutes);
+  application.use("/api", relatoriosRoutes);
+  application.use("/api", servicosRoutes);
+  application.use("/api", assinaturasRoutes);
+  application.use("/api", financeiroRoutes);
+  application.use("/api", clientesRoutes);
+}
+
 function registerFrontendRoutes(application) {
   application.use(express.static(frontendDistPath));
 
@@ -31,6 +50,7 @@ function registerFrontendRoutes(application) {
       req.path.startsWith("/relatorios") ||
       req.path.startsWith("/servicos") ||
       req.path.startsWith("/assinaturas") ||
+      req.path.startsWith("/api") ||
       req.path === "/health"
     ) {
       return next();
@@ -71,14 +91,29 @@ export async function createApp({
     });
   });
 
-  app.use(adminRoutes);
-  app.use(horariosRoutes);
-  app.use(agendamentosRoutes);
-  app.use(relatoriosRoutes);
-  app.use(servicosRoutes);
-  app.use(assinaturasRoutes);
-  app.use(financeiroRoutes);
-  app.use(clientesRoutes);
+  app.get("/api/health", async (req, res) => {
+    const status = getDatabaseStatus();
+
+    try {
+      await checkDatabaseConnection();
+    } catch (error) {
+      return res.status(503).json({
+        ok: false,
+        database: getDatabaseStatus()
+      });
+    }
+
+    return res.json({
+      ok: true,
+      database: {
+        ...status,
+        ready: true,
+        error: null
+      }
+    });
+  });
+
+  registerApiRoutes(app);
 
   if (includeFrontend) {
     registerFrontendRoutes(app);
